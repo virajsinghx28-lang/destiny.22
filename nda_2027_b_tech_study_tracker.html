@@ -1,0 +1,3904 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>NDA 2027 & B.Tech Study Tracker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          },
+          colors: {
+            nda: {
+              50: '#ecfdf5',
+              100: '#d1fae5',
+              500: '#10b981',
+              600: '#059669',
+              700: '#047857',
+            },
+            btech: {
+              50: '#eef2ff',
+              100: '#e0e7ff',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* Custom sleek scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0f172a;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #475569;
+    }
+    
+    /* Touch target minimum dimensions */
+    .touch-target {
+      min-height: 44px;
+      min-width: 44px;
+    }
+
+    /* Modal Backdrop */
+    .modal-backdrop {
+      background-color: rgba(15, 23, 42, 0.82);
+      backdrop-filter: blur(4px);
+    }
+
+    /* Smooth tab transition */
+    .view-container {
+      display: none;
+    }
+    .view-container.active {
+      display: block;
+      animation: fadeIn 0.15s ease-in-out;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 font-sans min-h-screen flex flex-col antialiased selection:bg-emerald-500 selection:text-white pb-20 md:pb-6">
+
+  <header class="sticky top-0 z-30 bg-slate-900/90 backdrop-blur border-b border-slate-800 px-3 md:px-6 py-2.5 transition-all">
+    <div class="max-w-7xl mx-auto flex items-center justify-between gap-2">
+      
+      <!-- Brand & Mobile menu toggle -->
+      <div class="flex items-center gap-2.5">
+        <button id="mobileNavToggleBtn" class="md:hidden p-2 text-slate-300 hover:text-white hover:bg-slate-800 rounded-lg touch-target flex items-center justify-center">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+        </button>
+        <div class="flex items-center gap-2 cursor-pointer" onclick="switchView('dashboard')">
+          <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-emerald-600 via-teal-500 to-indigo-600 flex items-center justify-center font-bold text-white text-base shadow-lg shadow-emerald-500/10">
+            🎯
+          </div>
+          <div>
+            <h1 class="text-sm md:text-base font-bold tracking-tight text-white flex items-center gap-1.5 leading-tight">
+              PrepHQ <span class="text-xs px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-medium">NDA 2027 + B.Tech</span>
+            </h1>
+            <p class="text-[11px] text-slate-400 leading-tight hidden sm:block" id="headerDateDisplay">Today's Hub</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Countdowns & Streak Badge -->
+      <div class="flex items-center gap-1.5 md:gap-3">
+        <!-- Streak Badge -->
+        <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-300 text-xs font-semibold">
+          <span class="text-sm animate-pulse">🔥</span>
+          <span id="streakCount">0</span>
+          <span class="hidden sm:inline text-[10px] text-amber-400/80 font-normal">Day Streak</span>
+        </div>
+
+        <!-- NDA 2027 Countdown Badge -->
+        <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-medium cursor-pointer" onclick="switchView('nda')" title="Click to open NDA Hub">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+          <span class="font-bold font-mono" id="ndaDaysCount">--</span>
+          <span class="text-[10px] text-emerald-300 hidden sm:inline">d to NDA '27</span>
+        </div>
+
+        <!-- B.Tech Sem Countdown Badge -->
+        <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-medium cursor-pointer" onclick="switchView('btech')" title="Click to open B.Tech Hub">
+          <span class="font-bold font-mono" id="btechDaysCount">--</span>
+          <span class="text-[10px] text-indigo-300 hidden sm:inline">d to Exams</span>
+        </div>
+
+        <!-- Fast Task Quick Add -->
+        <button onclick="openTaskModal()" class="hidden sm:flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-medium px-3 py-1.5 rounded-lg shadow transition">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+          New Task
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <div class="max-w-7xl mx-auto w-full flex-1 flex">
+
+    <!-- DESKTOP SIDEBAR NAVIGATION -->
+    <aside class="hidden md:flex flex-col w-64 bg-slate-900/60 border-r border-slate-800/80 p-4 space-y-6 shrink-0">
+      
+      <!-- Primary Study Hubs -->
+      <div>
+        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-3 mb-2">Main Navigation</p>
+        <nav class="space-y-1">
+          <button onclick="switchView('dashboard')" class="nav-btn w-full flex items-center gap-3 px-3 py-2 text-xs font-semibold rounded-lg text-slate-300 hover:text-white hover:bg-slate-800/80 transition" data-view="dashboard">
+            <span class="text-base">📊</span> Dashboard
+          </button>
+          <button onclick="switchView('tasks')" class="nav-btn w-full flex items-center justify-between px-3 py-2 text-xs font-semibold rounded-lg text-slate-300 hover:text-white hover:bg-slate-800/80 transition" data-view="tasks">
+            <span class="flex items-center gap-3"><span class="text-base">📝</span> Today's Tasks</span>
+            <span id="sideTaskPendingBadge" class="bg-rose-500/20 text-rose-300 text-[10px] px-1.5 py-0.2 rounded font-mono">0</span>
+          </button>
+          <button onclick="switchView('timer')" class="nav-btn w-full flex items-center justify-between px-3 py-2 text-xs font-semibold rounded-lg text-slate-300 hover:text-white hover:bg-slate-800/80 transition" data-view="timer">
+            <span class="flex items-center gap-3"><span class="text-base">⏱️</span> Study Timer</span>
+            <span id="sideTimerRunningDot" class="w-2 h-2 rounded-full bg-emerald-500 hidden animate-pulse"></span>
+          </button>
+        </nav>
+      </div>
+
+      <!-- Preparation Portals -->
+      <div>
+        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-3 mb-2">Dual Prep Hubs</p>
+        <nav class="space-y-1">
+          <button onclick="switchView('nda')" class="nav-btn w-full flex items-center gap-3 px-3 py-2 text-xs font-semibold rounded-lg text-emerald-400 hover:bg-emerald-950/40 border border-transparent hover:border-emerald-800/40 transition" data-view="nda">
+            <span class="text-base">🎯</span> NDA 2027 Hub
+          </button>
+          <button onclick="switchView('btech')" class="nav-btn w-full flex items-center gap-3 px-3 py-2 text-xs font-semibold rounded-lg text-indigo-400 hover:bg-indigo-950/40 border border-transparent hover:border-indigo-800/40 transition" data-view="btech">
+            <span class="text-base">💻</span> B.Tech Hub
+          </button>
+          <button onclick="switchView('subjects')" class="nav-btn w-full flex items-center gap-3 px-3 py-2 text-xs font-semibold rounded-lg text-slate-300 hover:text-white hover:bg-slate-800/80 transition" data-view="subjects">
+            <span class="text-base">📚</span> Subjects & Chapters
+          </button>
+        </nav>
+      </div>
+
+      <!-- Performance & Practice Tools -->
+      <div>
+        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-3 mb-2">Practice & Tracking</p>
+        <nav class="space-y-1">
+          <button onclick="switchView('mocks')" class="nav-btn w-full flex items-center gap-3 px-3 py-2 text-xs font-semibold rounded-lg text-slate-300 hover:text-white hover:bg-slate-800/80 transition" data-view="mocks">
+            <span class="text-base">📈</span> Mock Tests
+          </button>
+          <button onclick="switchView('pyqs')" class="nav-btn w-full flex items-center gap-3 px-3 py-2 text-xs font-semibold rounded-lg text-slate-300 hover:text-white hover:bg-slate-800/80 transition" data-view="pyqs">
+            <span class="text-base">📜</span> PYQ Tracker
+          </button>
+          <button onclick="switchView('mistakes')" class="nav-btn w-full flex items-center gap-3 px-3 py-2 text-xs font-semibold rounded-lg text-slate-300 hover:text-white hover:bg-slate-800/80 transition" data-view="mistakes">
+            <span class="text-base">🔍</span> Mistake Notebook
+          </button>
+          <button onclick="switchView('calendar')" class="nav-btn w-full flex items-center gap-3 px-3 py-2 text-xs font-semibold rounded-lg text-slate-300 hover:text-white hover:bg-slate-800/80 transition" data-view="calendar">
+            <span class="text-base">📅</span> Calendar & Schedule
+          </button>
+          <button onclick="switchView('analytics')" class="nav-btn w-full flex items-center gap-3 px-3 py-2 text-xs font-semibold rounded-lg text-slate-300 hover:text-white hover:bg-slate-800/80 transition" data-view="analytics">
+            <span class="text-base">📊</span> Analytics & Trends
+          </button>
+        </nav>
+      </div>
+
+      <!-- Settings & Data -->
+      <div class="pt-2 border-t border-slate-800/80">
+        <button onclick="switchView('settings')" class="nav-btn w-full flex items-center gap-3 px-3 py-2 text-xs font-semibold rounded-lg text-slate-400 hover:text-white hover:bg-slate-800/80 transition" data-view="settings">
+          <span class="text-base">⚙️</span> Settings & Backups
+        </button>
+      </div>
+
+      <!-- Quick Daily Hours Progress -->
+      <div class="mt-auto p-3 rounded-xl bg-slate-900 border border-slate-800">
+        <div class="flex justify-between items-center text-xs mb-1">
+          <span class="text-slate-400">Today's Focus</span>
+          <span class="font-mono text-emerald-400 font-bold" id="sidebarHoursDisplay">0.0 / 6h</span>
+        </div>
+        <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+          <div id="sidebarHoursBar" class="bg-gradient-to-r from-emerald-500 to-teal-400 h-full rounded-full transition-all duration-300" style="width: 0%"></div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- MAIN VIEWS CONTENT WRAPPER -->
+    <main class="flex-1 min-w-0 p-3.5 sm:p-5 md:p-6 lg:p-8 max-w-full overflow-x-hidden">
+      
+      <!-- ========================================== -->
+      <!-- VIEW 1: DASHBOARD                          -->
+      <!-- ========================================== -->
+      <section id="view-dashboard" class="view-container active space-y-6">
+        
+        <!-- Welcome Hero & Targets Banner -->
+        <div class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-900 via-slate-850 to-slate-900 border border-slate-800 p-4 sm:p-6 shadow-xl">
+          <div class="absolute -top-12 -right-12 w-48 h-48 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
+          <div class="absolute -bottom-12 -left-12 w-48 h-48 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+          <div class="relative flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold mb-2">
+                <span>⚡ Daily Goal Status</span>
+                <span id="dashGoalStatusText">In Progress</span>
+              </div>
+              <h2 class="text-xl sm:text-2xl font-black text-white tracking-tight">Yuvraj Singh</h2>
+              <p class="text-xs sm:text-sm text-slate-400 mt-1 max-w-xl">
+                Balancing NDA 2027 defense dream with B.Tech engineering excellence. Everything is completely customizable.
+              </p>
+            </div>
+
+            <!-- Quick Action Buttons -->
+            <div class="flex flex-wrap items-center gap-2">
+              <button onclick="openTaskModal()" class="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded-xl shadow-md transition touch-target">
+                <span>➕</span> Add Task
+              </button>
+              <button onclick="switchView('timer')" class="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-3.5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-xl shadow-md transition touch-target">
+                <span>⏱️</span> Start Timer
+              </button>
+              <button onclick="openLogHoursModal()" class="inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-xl border border-slate-700 transition touch-target">
+                <span>✍️</span> Log Hours
+              </button>
+            </div>
+          </div>
+
+          <!-- Quick Metrics Bar -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-6 pt-5 border-t border-slate-800/80">
+            <div class="bg-slate-900/80 rounded-xl p-3 border border-slate-800">
+              <span class="text-[11px] font-medium text-slate-400">NDA 2027 Target</span>
+              <div class="text-lg font-bold font-mono text-emerald-400 mt-0.5" id="dashNdaTarget">480 / 900</div>
+              <span class="text-[10px] text-slate-500" id="dashNdaSubtext">Written Cutoff Goal</span>
+            </div>
+            <div class="bg-slate-900/80 rounded-xl p-3 border border-slate-800">
+              <span class="text-[11px] font-medium text-slate-400">B.Tech SGPA Target</span>
+              <div class="text-lg font-bold font-mono text-indigo-400 mt-0.5" id="dashBtechTarget">8.50</div>
+              <span class="text-[10px] text-slate-500">Current Semester</span>
+            </div>
+            <div class="bg-slate-900/80 rounded-xl p-3 border border-slate-800">
+              <span class="text-[11px] font-medium text-slate-400">Today's Completed</span>
+              <div class="text-lg font-bold font-mono text-white mt-0.5" id="dashTasksStat">0 / 0</div>
+              <span class="text-[10px] text-slate-500" id="dashTasksPercent">0% finished</span>
+            </div>
+            <div class="bg-slate-900/80 rounded-xl p-3 border border-slate-800">
+              <span class="text-[11px] font-medium text-slate-400">Today's Study Log</span>
+              <div class="text-lg font-bold font-mono text-amber-400 mt-0.5" id="dashStudyLogged">0.0h</div>
+              <span class="text-[10px] text-slate-500" id="dashStudyTarget">Target: 6.0h</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Two Column Main Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          
+          <!-- Left 2 Cols: Today's Tasks Priority Checklist -->
+          <div class="lg:col-span-2 space-y-4">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <h3 class="text-base font-bold text-white flex items-center gap-2">
+                  <span>📋</span> Today's Action Plan
+                </h3>
+                <span class="text-xs px-2 py-0.5 rounded-full bg-slate-800 text-slate-300 font-mono" id="dashTodayCount">0</span>
+              </div>
+              <button onclick="switchView('tasks')" class="text-xs text-emerald-400 hover:text-emerald-300 font-semibold flex items-center gap-1">
+                View All Tasks →
+              </button>
+            </div>
+
+            <!-- Task List Container -->
+            <div id="dashTasksList" class="space-y-2.5">
+              <!-- Dynamically populated -->
+            </div>
+
+            <!-- Spaced Revision & Mistake Reminders Widget -->
+            <div class="p-4 rounded-2xl bg-rose-950/20 border border-rose-900/30">
+              <div class="flex items-center justify-between mb-2">
+                <div class="flex items-center gap-2">
+                  <span class="text-rose-400 text-sm">🔔</span>
+                  <h4 class="text-xs font-bold uppercase tracking-wider text-rose-300">Revisions Due Today</h4>
+                </div>
+                <button onclick="switchView('mistakes')" class="text-[11px] text-rose-400 hover:underline">Mistake Book →</button>
+              </div>
+              <div id="dashRevisionList" class="space-y-1.5 text-xs">
+                <!-- Dynamically populated -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Right 1 Col: Quick NDA & BTech Progress Breakdown -->
+          <div class="space-y-5">
+            <!-- Dual Focus Progress Card -->
+            <div class="p-4 sm:p-5 rounded-2xl bg-slate-900 border border-slate-800 space-y-4">
+              <h3 class="text-sm font-bold text-white flex items-center justify-between">
+                <span>Syllabus Health</span>
+                <button onclick="switchView('subjects')" class="text-xs text-slate-400 hover:text-white">Manage →</button>
+              </h3>
+
+              <!-- NDA Syllabus Progress -->
+              <div>
+                <div class="flex justify-between items-center text-xs mb-1">
+                  <span class="text-emerald-400 font-semibold flex items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500"></span> NDA 2027 Syllabus
+                  </span>
+                  <span class="font-mono text-slate-300 font-bold" id="dashNdaSyllabusPct">0%</span>
+                </div>
+                <div class="w-full bg-slate-800 h-2.5 rounded-full overflow-hidden">
+                  <div id="dashNdaSyllabusBar" class="bg-emerald-500 h-full rounded-full transition-all" style="width: 0%"></div>
+                </div>
+                <div class="flex justify-between text-[10px] text-slate-400 mt-1">
+                  <span id="dashNdaChaptersDone">0/0 Chapters</span>
+                  <span id="dashNdaMathGatRatio">Maths & GAT</span>
+                </div>
+              </div>
+
+              <!-- B.Tech Syllabus Progress -->
+              <div>
+                <div class="flex justify-between items-center text-xs mb-1">
+                  <span class="text-indigo-400 font-semibold flex items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-indigo-500"></span> B.Tech Semester
+                  </span>
+                  <span class="font-mono text-slate-300 font-bold" id="dashBtechSyllabusPct">0%</span>
+                </div>
+                <div class="w-full bg-slate-800 h-2.5 rounded-full overflow-hidden">
+                  <div id="dashBtechSyllabusBar" class="bg-indigo-500 h-full rounded-full transition-all" style="width: 0%"></div>
+                </div>
+                <div class="flex justify-between text-[10px] text-slate-400 mt-1">
+                  <span id="dashBtechChaptersDone">0/0 Units Done</span>
+                  <span>Theory & Labs</span>
+                </div>
+              </div>
+
+              <!-- Mock Test Quick Stats -->
+              <div class="pt-3 border-t border-slate-800">
+                <div class="flex justify-between items-center text-xs">
+                  <span class="text-slate-400">Latest NDA Mock Score:</span>
+                  <span class="font-bold font-mono text-white" id="dashLatestMockNda">--</span>
+                </div>
+                <div class="flex justify-between items-center text-xs mt-1">
+                  <span class="text-slate-400">PYQs Solved Total:</span>
+                  <span class="font-bold font-mono text-emerald-400" id="dashPyqsCount">0 Questions</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Quick Study Habit / Motivation card -->
+            <div class="p-4 rounded-2xl bg-gradient-to-br from-slate-900 to-slate-850 border border-slate-800">
+              <h4 class="text-xs font-bold text-amber-400 uppercase tracking-wider mb-1 flex items-center gap-1.5">
+                <span>🛡️</span> Officer & Engineer Mindset
+              </h4>
+              <p class="text-xs text-slate-300 italic leading-relaxed" id="quoteDisplay">
+                "Small daily disciplines repeated consistently lead to monumental victories."
+              </p>
+              <div class="mt-3 pt-3 border-t border-slate-800 flex justify-between items-center text-[11px] text-slate-400">
+                <span>Streak Safeguard</span>
+                <span class="text-emerald-400 font-semibold">Active & Synced</span>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+      </section>
+
+      <!-- ========================================== -->
+      <!-- VIEW 2: TODAY'S TASKS                      -->
+      <!-- ========================================== -->
+      <section id="view-tasks" class="view-container space-y-5">
+        
+        <!-- Header & Filter Bar -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-900 p-4 rounded-2xl border border-slate-800">
+          <div>
+            <h2 class="text-lg font-bold text-white flex items-center gap-2">
+              <span>📝</span> Task Planner & Execution
+            </h2>
+            <p class="text-xs text-slate-400 mt-0.5">Organize daily study goals, assignment submissions, and mock tests</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="openTaskModal()" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl shadow transition touch-target flex items-center gap-1.5">
+              <span>➕</span> Add Task
+            </button>
+            <button onclick="clearCompletedTasks()" class="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-xl border border-slate-700 transition touch-target">
+              🧹 Clean Done
+            </button>
+          </div>
+        </div>
+
+        <!-- Task Filters -->
+        <div class="flex flex-wrap items-center gap-2">
+          <button onclick="filterTasks('all')" class="task-filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-600 text-white" data-filter="all">All</button>
+          <button onclick="filterTasks('today')" class="task-filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300 hover:text-white" data-filter="today">Today</button>
+          <button onclick="filterTasks('nda')" class="task-filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-emerald-400 hover:bg-emerald-950/40" data-filter="nda">🎯 NDA Only</button>
+          <button onclick="filterTasks('btech')" class="task-filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-indigo-400 hover:bg-indigo-950/40" data-filter="btech">💻 B.Tech Only</button>
+          <button onclick="filterTasks('pending')" class="task-filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-amber-400 hover:text-amber-300" data-filter="pending">⏳ Pending</button>
+          <button onclick="filterTasks('completed')" class="task-filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-slate-400 hover:text-white" data-filter="completed">✅ Done</button>
+        </div>
+
+        <!-- Tasks Listing Container -->
+        <div id="fullTasksList" class="space-y-2.5">
+          <!-- Dynamically populated -->
+        </div>
+
+      </section>
+
+      <!-- ========================================== -->
+      <!-- VIEW 3: NDA PREPARATION HUB                -->
+      <!-- ========================================== -->
+      <section id="view-nda" class="view-container space-y-6">
+        
+        <!-- NDA Header Card -->
+        <div class="p-5 rounded-2xl bg-gradient-to-r from-emerald-950/60 via-slate-900 to-slate-900 border border-emerald-900/40 relative overflow-hidden">
+          <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="text-xs px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 font-bold border border-emerald-500/30">UPSC NDA & NA 2027</span>
+                <span class="text-xs text-slate-400">Target: NDA-1 / NDA-2</span>
+              </div>
+              <h2 class="text-xl sm:text-2xl font-black text-white mt-1">National Defence Academy Mission</h2>
+              <p class="text-xs sm:text-sm text-slate-300 mt-0.5">Written Exam Blueprint: Paper 1 (Mathematics - 300) + Paper 2 (GAT - 600)</p>
+            </div>
+            <div class="flex items-center gap-3">
+              <div class="text-right">
+                <div class="text-xs text-slate-400">Target Score</div>
+                <div class="text-xl font-black text-emerald-400 font-mono" id="ndaHubTargetScore">480 / 900</div>
+              </div>
+              <button onclick="openTargetSettingsModal('nda')" class="px-3 py-2 bg-emerald-600/30 hover:bg-emerald-600/40 text-emerald-300 border border-emerald-500/30 rounded-xl text-xs font-semibold transition touch-target">
+                ✏️ Edit Target
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- NDA Exam Split Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+          
+          <!-- Paper 1: Mathematics -->
+          <div class="bg-slate-900 rounded-2xl border border-slate-800 p-5 space-y-4">
+            <div class="flex items-center justify-between">
+              <div>
+                <span class="text-xs font-bold text-emerald-400 uppercase tracking-wider">Paper 1 (300 Marks)</span>
+                <h3 class="text-base font-bold text-white">Mathematics</h3>
+                <p class="text-xs text-slate-400">120 Questions • 2.5 Hours • +2.5 / -0.83</p>
+              </div>
+              <button onclick="openSubjectModal('nda', 'Mathematics')" class="text-xs px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg border border-slate-700 transition">
+                ➕ Add Chapter
+              </button>
+            </div>
+
+            <div class="space-y-2">
+              <div class="flex justify-between text-xs text-slate-400">
+                <span>Calculus, Algebra, Matrices, Trig & Vectors</span>
+                <span id="ndaMathProgressText" class="font-mono text-emerald-400">0%</span>
+              </div>
+              <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+                <div id="ndaMathProgressBar" class="bg-emerald-500 h-full rounded-full" style="width: 0%"></div>
+              </div>
+            </div>
+
+            <!-- NDA Math Chapter List -->
+            <div id="ndaMathChaptersList" class="space-y-2 max-h-80 overflow-y-auto pr-1">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+
+          <!-- Paper 2: General Ability Test (GAT) -->
+          <div class="bg-slate-900 rounded-2xl border border-slate-800 p-5 space-y-4">
+            <div class="flex items-center justify-between">
+              <div>
+                <span class="text-xs font-bold text-teal-400 uppercase tracking-wider">Paper 2 (600 Marks)</span>
+                <h3 class="text-base font-bold text-white">General Ability Test (GAT)</h3>
+                <p class="text-xs text-slate-400">English (200) + General Knowledge / Science (400)</p>
+              </div>
+              <button onclick="openSubjectModal('nda', 'GAT')" class="text-xs px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg border border-slate-700 transition">
+                ➕ Add Chapter
+              </button>
+            </div>
+
+            <div class="space-y-2">
+              <div class="flex justify-between text-xs text-slate-400">
+                <span>English, Physics, Chemistry, History, Current Affairs</span>
+                <span id="ndaGatProgressText" class="font-mono text-teal-400">0%</span>
+              </div>
+              <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+                <div id="ndaGatProgressBar" class="bg-teal-500 h-full rounded-full" style="width: 0%"></div>
+              </div>
+            </div>
+
+            <!-- NDA GAT Chapter List -->
+            <div id="ndaGatChaptersList" class="space-y-2 max-h-80 overflow-y-auto pr-1">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+
+        </div>
+
+      </section>
+
+      <!-- ========================================== -->
+      <!-- VIEW 4: B.TECH PREPARATION HUB             -->
+      <!-- ========================================== -->
+      <section id="view-btech" class="view-container space-y-6">
+        
+        <!-- B.Tech Header Card -->
+        <div class="p-5 rounded-2xl bg-gradient-to-r from-indigo-950/60 via-slate-900 to-slate-900 border border-indigo-900/40 relative overflow-hidden">
+          <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="text-xs px-2.5 py-0.5 rounded-full bg-indigo-500/20 text-indigo-400 font-bold border border-indigo-500/30">Engineering Academics</span>
+                <span class="text-xs text-slate-400">Mid-Sem & End-Sem Prep</span>
+              </div>
+              <h2 class="text-xl sm:text-2xl font-black text-white mt-1">B.Tech Engineering Dashboard</h2>
+              <p class="text-xs sm:text-sm text-slate-300 mt-0.5">Balancing GPA, Core Concepts, Lab Experiments and Practical Assignments</p>
+            </div>
+            <div class="flex items-center gap-3">
+              <div class="text-right">
+                <div class="text-xs text-slate-400">Target SGPA</div>
+                <div class="text-xl font-black text-indigo-400 font-mono" id="btechHubTargetSgpa">8.50</div>
+              </div>
+              <button onclick="openTargetSettingsModal('btech')" class="px-3 py-2 bg-indigo-600/30 hover:bg-indigo-600/40 text-indigo-300 border border-indigo-500/30 rounded-xl text-xs font-semibold transition touch-target">
+                ✏️ Edit Target
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- B.Tech Subjects Grid -->
+        <div class="flex items-center justify-between">
+          <h3 class="text-base font-bold text-white flex items-center gap-2">
+            <span>📚</span> Current Semester Courses & Labs
+          </h3>
+          <button onclick="openSubjectModal('btech')" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5">
+            <span>➕</span> Add B.Tech Subject
+          </button>
+        </div>
+
+        <div id="btechSubjectsContainer" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Dynamically populated -->
+        </div>
+
+      </section>
+
+      <!-- ========================================== -->
+      <!-- VIEW 5: SUBJECTS & CHAPTERS MANAGER        -->
+      <!-- ========================================== -->
+      <section id="view-subjects" class="view-container space-y-6">
+        
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-900 p-4 rounded-2xl border border-slate-800">
+          <div>
+            <h2 class="text-lg font-bold text-white flex items-center gap-2">
+              <span>📚</span> Complete Syllabus Architect
+            </h2>
+            <p class="text-xs text-slate-400">Add, edit, delete, and configure all subjects, chapters, and units without touching code</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="openSubjectModal()" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl shadow transition touch-target flex items-center gap-1.5">
+              <span>➕</span> Add Subject
+            </button>
+          </div>
+        </div>
+
+        <!-- Stream Tabs -->
+        <div class="flex items-center gap-2 border-b border-slate-800 pb-2">
+          <button onclick="filterSubjectStream('all')" class="sub-stream-tab px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-600 text-white" data-stream="all">All Streams</button>
+          <button onclick="filterSubjectStream('nda')" class="sub-stream-tab px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300 hover:text-white" data-stream="nda">🎯 NDA Subjects</button>
+          <button onclick="filterSubjectStream('btech')" class="sub-stream-tab px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300 hover:text-white" data-stream="btech">💻 B.Tech Subjects</button>
+        </div>
+
+        <!-- Subject List with nested chapters -->
+        <div id="fullSubjectsList" class="space-y-4">
+          <!-- Dynamically populated -->
+        </div>
+
+      </section>
+
+      <!-- ========================================== -->
+      <!-- VIEW 6: STUDY TIMER & POMODORO             -->
+      <!-- ========================================== -->
+      <section id="view-timer" class="view-container space-y-6">
+        
+        <div class="max-w-2xl mx-auto space-y-6">
+          
+          <!-- Timer Card -->
+          <div class="bg-slate-900 rounded-3xl border border-slate-800 p-6 sm:p-10 text-center relative overflow-hidden shadow-2xl">
+            <div class="absolute -top-16 -right-16 w-48 h-48 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+            <!-- Mode Selector Tabs -->
+            <div class="inline-flex p-1 bg-slate-800/80 rounded-xl mb-6">
+              <button onclick="setTimerMode('pomodoro', 25)" class="timer-mode-btn px-3.5 py-1.5 rounded-lg text-xs font-bold text-white bg-emerald-600" data-mode="pomodoro">25m Pomodoro</button>
+              <button onclick="setTimerMode('focus', 50)" class="timer-mode-btn px-3.5 py-1.5 rounded-lg text-xs font-bold text-slate-300 hover:text-white" data-mode="focus">50m Deep Work</button>
+              <button onclick="setTimerMode('shortBreak', 5)" class="timer-mode-btn px-3.5 py-1.5 rounded-lg text-xs font-bold text-slate-300 hover:text-white" data-mode="shortBreak">5m Break</button>
+              <button onclick="setTimerMode('stopwatch', 0)" class="timer-mode-btn px-3.5 py-1.5 rounded-lg text-xs font-bold text-slate-300 hover:text-white" data-mode="stopwatch">⏱️ Stopwatch</button>
+            </div>
+
+            <!-- Subject Tagging Dropdown -->
+            <div class="max-w-xs mx-auto mb-6">
+              <label class="block text-slate-400 text-xs font-medium mb-1.5">Tag this session with Subject:</label>
+              <select id="timerSubjectSelect" class="w-full bg-slate-800 border border-slate-700 text-white text-xs rounded-xl px-3 py-2 outline-none focus:border-emerald-500">
+                <!-- Dynamically populated with active subjects -->
+              </select>
+            </div>
+
+            <!-- Big Countdown Display -->
+            <div class="my-6">
+              <div class="text-6xl sm:text-7xl md:text-8xl font-black font-mono tracking-tight text-white select-none" id="timerDisplay">
+                25:00
+              </div>
+              <p class="text-xs text-slate-400 mt-2" id="timerStatusSub">Stay locked in. No distractions.</p>
+            </div>
+
+            <!-- Controls -->
+            <div class="flex items-center justify-center gap-3">
+              <button id="timerToggleBtn" onclick="toggleTimer()" class="px-8 py-3.5 bg-emerald-600 hover:bg-emerald-500 text-white text-base font-bold rounded-2xl shadow-lg shadow-emerald-600/30 transition transform active:scale-95 touch-target">
+                ▶ Start Session
+              </button>
+              <button onclick="resetTimer()" class="px-5 py-3.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm font-semibold rounded-2xl border border-slate-700 transition touch-target">
+                ↺ Reset
+              </button>
+              <button onclick="finishSessionManual()" class="px-4 py-3.5 bg-indigo-600/30 hover:bg-indigo-600/40 text-indigo-300 text-sm font-semibold rounded-2xl border border-indigo-500/30 transition touch-target" title="Log current elapsed time directly to daily study hours">
+                💾 Log Progress
+              </button>
+            </div>
+
+          </div>
+
+          <!-- Quick Today's Study Log Summary -->
+          <div class="bg-slate-900 rounded-2xl border border-slate-800 p-4 space-y-3">
+            <div class="flex justify-between items-center">
+              <h3 class="text-xs font-bold text-white uppercase tracking-wider">Today's Recorded Sessions</h3>
+              <span class="text-xs font-mono text-emerald-400 font-bold" id="timerTotalTodayLogged">0.0 Hours Total</span>
+            </div>
+            <div id="timerSessionsList" class="space-y-2 max-h-48 overflow-y-auto">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+
+        </div>
+
+      </section>
+
+      <!-- ========================================== -->
+      <!-- VIEW 7: MOCK TESTS TRACKER                 -->
+      <!-- ========================================== -->
+      <section id="view-mocks" class="view-container space-y-6">
+        
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-900 p-4 rounded-2xl border border-slate-800">
+          <div>
+            <h2 class="text-lg font-bold text-white flex items-center gap-2">
+              <span>📈</span> Mock Tests & Benchmark Results
+            </h2>
+            <p class="text-xs text-slate-400">Track NDA Full-Length & Subject Mocks, B.Tech Mid-Term tests, and score trends</p>
+          </div>
+          <button onclick="openMockModal()" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl shadow transition touch-target flex items-center gap-1.5">
+            <span>➕</span> Log Mock Test
+          </button>
+        </div>
+
+        <!-- Mocks Performance Summary Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div class="p-4 rounded-xl bg-slate-900 border border-slate-800">
+            <span class="text-xs text-slate-400 font-medium">NDA Mocks Average</span>
+            <div class="text-xl font-bold font-mono text-emerald-400 mt-1" id="mockAvgNda">-- / 900</div>
+            <span class="text-[10px] text-slate-500" id="mockCountNda">0 Tests Logged</span>
+          </div>
+          <div class="p-4 rounded-xl bg-slate-900 border border-slate-800">
+            <span class="text-xs text-slate-400 font-medium">B.Tech Exams Average</span>
+            <div class="text-xl font-bold font-mono text-indigo-400 mt-1" id="mockAvgBtech">--%</div>
+            <span class="text-[10px] text-slate-500" id="mockCountBtech">0 Tests Logged</span>
+          </div>
+          <div class="p-4 rounded-xl bg-slate-900 border border-slate-800">
+            <span class="text-xs text-slate-400 font-medium">Total Mocks Attempted</span>
+            <div class="text-xl font-bold font-mono text-white mt-1" id="mockTotalCount">0</div>
+            <span class="text-[10px] text-emerald-400">Consistent analysis is key</span>
+          </div>
+        </div>
+
+        <!-- Mocks Table -->
+        <div class="bg-slate-900 rounded-2xl border border-slate-800 overflow-hidden">
+          <div class="p-3.5 border-b border-slate-800 flex justify-between items-center">
+            <span class="text-xs font-bold text-white uppercase tracking-wider">Test History & Remarks</span>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-slate-950 text-slate-400 uppercase text-[10px] font-semibold border-b border-slate-800">
+                <tr>
+                  <th class="p-3">Stream</th>
+                  <th class="p-3">Test Title</th>
+                  <th class="p-3">Date</th>
+                  <th class="p-3">Score / Max</th>
+                  <th class="p-3">% Percentage</th>
+                  <th class="p-3">Key Learnings</th>
+                  <th class="p-3 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="mocksTableBody" class="divide-y divide-slate-800/60 text-slate-300">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ========================================== -->
+      <!-- VIEW 8: PYQs TRACKER                       -->
+      <!-- ========================================== -->
+      <section id="view-pyqs" class="view-container space-y-6">
+        
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-900 p-4 rounded-2xl border border-slate-800">
+          <div>
+            <h2 class="text-lg font-bold text-white flex items-center gap-2">
+              <span>📜</span> Previous Year Questions (PYQs)
+            </h2>
+            <p class="text-xs text-slate-400">Master UPSC NDA papers (2018–2026) and university semester end-term papers</p>
+          </div>
+          <button onclick="openPyqModal()" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl shadow transition touch-target flex items-center gap-1.5">
+            <span>➕</span> Log PYQ Practice
+          </button>
+        </div>
+
+        <!-- PYQs Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div class="p-4 rounded-xl bg-slate-900 border border-slate-800">
+            <span class="text-xs text-slate-400 font-medium">Total Solved</span>
+            <div class="text-xl font-bold font-mono text-emerald-400 mt-1" id="pyqTotalQuestions">0 Qs</div>
+            <span class="text-[10px] text-slate-500">Across all years</span>
+          </div>
+          <div class="p-4 rounded-xl bg-slate-900 border border-slate-800">
+            <span class="text-xs text-slate-400 font-medium">Overall Accuracy</span>
+            <div class="text-xl font-bold font-mono text-teal-400 mt-1" id="pyqOverallAccuracy">0%</div>
+            <span class="text-[10px] text-slate-500">Correct answers ratio</span>
+          </div>
+          <div class="p-4 rounded-xl bg-slate-900 border border-slate-800">
+            <span class="text-xs text-slate-400 font-medium">Papers Mastered</span>
+            <div class="text-xl font-bold font-mono text-white mt-1" id="pyqMasteredCount">0</div>
+            <span class="text-[10px] text-indigo-400">Reviewed & corrected</span>
+          </div>
+        </div>
+
+        <!-- PYQ List Container -->
+        <div class="bg-slate-900 rounded-2xl border border-slate-800 overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-slate-950 text-slate-400 uppercase text-[10px] font-semibold border-b border-slate-800">
+                <tr>
+                  <th class="p-3">Stream</th>
+                  <th class="p-3">Paper / Year</th>
+                  <th class="p-3">Topic / Subject</th>
+                  <th class="p-3">Solved / Total</th>
+                  <th class="p-3">Accuracy</th>
+                  <th class="p-3">Status</th>
+                  <th class="p-3 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="pyqsTableBody" class="divide-y divide-slate-800/60 text-slate-300">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ========================================== -->
+      <!-- VIEW 9: MISTAKE / REVISION NOTEBOOK        -->
+      <!-- ========================================== -->
+      <section id="view-mistakes" class="view-container space-y-6">
+        
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-900 p-4 rounded-2xl border border-slate-800">
+          <div>
+            <h2 class="text-lg font-bold text-white flex items-center gap-2">
+              <span>🔍</span> Spaced Revision & Mistake Book
+            </h2>
+            <p class="text-xs text-slate-400">Log conceptual traps, formula confusions, and silly mistakes so you never repeat them</p>
+          </div>
+          <button onclick="openMistakeModal()" class="px-3.5 py-2 bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold rounded-xl shadow transition touch-target flex items-center gap-1.5">
+            <span>➕</span> Add Mistake Record
+          </button>
+        </div>
+
+        <!-- Mistake filters -->
+        <div class="flex flex-wrap items-center gap-2">
+          <button onclick="filterMistakes('all')" class="mistake-filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-rose-600 text-white" data-filter="all">All Mistakes</button>
+          <button onclick="filterMistakes('pending')" class="mistake-filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-rose-300" data-filter="pending">Needs Revision</button>
+          <button onclick="filterMistakes('mastered')" class="mistake-filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-emerald-300" data-filter="mastered">✅ Mastered</button>
+        </div>
+
+        <!-- Mistakes Cards Grid -->
+        <div id="mistakesCardsContainer" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Dynamically populated -->
+        </div>
+
+      </section>
+
+      <!-- ========================================== -->
+      <!-- VIEW 10: CALENDAR VIEW                     -->
+      <!-- ========================================== -->
+      <section id="view-calendar" class="view-container space-y-6">
+        
+        <div class="bg-slate-900 p-4 sm:p-6 rounded-2xl border border-slate-800 space-y-4">
+          <div class="flex items-center justify-between">
+            <h2 class="text-lg font-bold text-white flex items-center gap-2">
+              <span>📅</span> Study Schedule & Deadlines
+            </h2>
+            <div class="flex items-center gap-2">
+              <button onclick="changeCalendarMonth(-1)" class="p-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs">◀</button>
+              <span id="calendarMonthTitle" class="text-sm font-bold text-white font-mono px-2">Month Year</span>
+              <button onclick="changeCalendarMonth(1)" class="p-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs">▶</button>
+            </div>
+          </div>
+
+          <!-- Calendar Matrix Grid -->
+          <div class="grid grid-cols-7 gap-1 sm:gap-2 text-center text-xs font-bold text-slate-400 pb-2 border-b border-slate-800">
+            <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
+          </div>
+          <div id="calendarDaysGrid" class="grid grid-cols-7 gap-1 sm:gap-2">
+            <!-- Dynamically populated 35/42 days -->
+          </div>
+        </div>
+
+        <!-- Selected Date Inspector -->
+        <div class="bg-slate-900 p-4 rounded-2xl border border-slate-800 space-y-3">
+          <div class="flex justify-between items-center">
+            <h3 class="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2">
+              <span>📌</span> Items for: <span id="calendarSelectedDateTitle" class="text-emerald-400 font-mono">Today</span>
+            </h3>
+            <button onclick="openTaskForSelectedCalendarDate()" class="text-xs text-emerald-400 hover:text-emerald-300 font-semibold">
+              ➕ Add Task on this Date
+            </button>
+          </div>
+          <div id="calendarDayItemsList" class="space-y-2 text-xs">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ========================================== -->
+      <!-- VIEW 11: PROGRESS & ANALYTICS              -->
+      <!-- ========================================== -->
+      <section id="view-analytics" class="view-container space-y-6">
+        
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-900 p-4 rounded-2xl border border-slate-800">
+          <div>
+            <h2 class="text-lg font-bold text-white flex items-center gap-2">
+              <span>📊</span> Dual-Preparation Performance Analytics
+            </h2>
+            <p class="text-xs text-slate-400">Visual breakdown of your weekly study hours, balance between NDA & B.Tech, and mock trends</p>
+          </div>
+        </div>
+
+        <!-- Charts Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          
+          <!-- Chart 1: Weekly Hours Bar Chart -->
+          <div class="p-5 rounded-2xl bg-slate-900 border border-slate-800 space-y-3">
+            <div class="flex justify-between items-center">
+              <div>
+                <h3 class="text-xs font-bold text-white uppercase tracking-wider">Weekly Focus Distribution</h3>
+                <p class="text-[11px] text-slate-400">Total hours logged across the last 7 days</p>
+              </div>
+              <span class="text-xs font-mono font-bold text-emerald-400" id="weeklyTotalHoursBadge">0h Total</span>
+            </div>
+            <div class="h-60 w-full relative flex items-center justify-center">
+              <canvas id="weeklyHoursChart" class="w-full h-full"></canvas>
+            </div>
+          </div>
+
+          <!-- Chart 2: NDA vs B.Tech Allocation Chart -->
+          <div class="p-5 rounded-2xl bg-slate-900 border border-slate-800 space-y-3">
+            <div class="flex justify-between items-center">
+              <div>
+                <h3 class="text-xs font-bold text-white uppercase tracking-wider">Stream Study Distribution</h3>
+                <p class="text-[11px] text-slate-400">NDA 2027 vs B.Tech Engineering hours</p>
+              </div>
+              <div class="flex items-center gap-3 text-[11px]">
+                <span class="flex items-center gap-1 text-emerald-400"><span class="w-2 h-2 rounded-full bg-emerald-500"></span> NDA</span>
+                <span class="flex items-center gap-1 text-indigo-400"><span class="w-2 h-2 rounded-full bg-indigo-500"></span> B.Tech</span>
+              </div>
+            </div>
+            <div class="h-60 w-full relative flex items-center justify-center">
+              <canvas id="streamShareChart" class="w-full h-full"></canvas>
+            </div>
+          </div>
+
+          <!-- Chart 3: Mock Test Score Trajectory -->
+          <div class="p-5 rounded-2xl bg-slate-900 border border-slate-800 space-y-3 lg:col-span-2">
+            <div class="flex justify-between items-center">
+              <div>
+                <h3 class="text-xs font-bold text-white uppercase tracking-wider">Mock Test Score Trajectory (%)</h3>
+                <p class="text-[11px] text-slate-400">Tracking performance percentage across your recent tests</p>
+              </div>
+            </div>
+            <div class="h-64 w-full relative flex items-center justify-center">
+              <canvas id="mockTrendChart" class="w-full h-full"></canvas>
+            </div>
+          </div>
+
+        </div>
+
+      </section>
+
+      <!-- ========================================== -->
+      <!-- VIEW 12: SETTINGS & DATA MANAGER           -->
+      <!-- ========================================== -->
+      <section id="view-settings" class="view-container space-y-6">
+        
+        <div class="bg-slate-900 p-5 rounded-2xl border border-slate-800 space-y-2">
+          <h2 class="text-lg font-bold text-white flex items-center gap-2">
+            <span>⚙️</span> Settings & Preparation Configuration
+          </h2>
+          <p class="text-xs text-slate-400">
+            Tune target scores, exam dates, daily study goals, and manage complete data backups with 1-click JSON import/export.
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          
+          <!-- Exam Targets Config Form -->
+          <form id="settingsProfileForm" onsubmit="saveProfileSettings(event)" class="bg-slate-900 p-5 rounded-2xl border border-slate-800 space-y-4">
+            <h3 class="text-xs font-bold text-white uppercase tracking-wider border-b border-slate-800 pb-2">
+              Exam Milestones & Goals
+            </h3>
+
+            <div>
+              <label class="block text-slate-300 text-xs font-medium mb-1">NDA Target Exam Date</label>
+              <input type="date" id="cfgNdaDate" class="w-full bg-slate-800 border border-slate-700 text-white text-xs rounded-xl px-3 py-2 outline-none focus:border-emerald-500" required>
+              <p class="text-[10px] text-slate-400 mt-1">UPSC NDA 2027 primary target date</p>
+            </div>
+
+            <div>
+              <label class="block text-slate-300 text-xs font-medium mb-1">NDA Target Written Score (out of 900)</label>
+              <input type="number" id="cfgNdaScore" min="200" max="900" class="w-full bg-slate-800 border border-slate-700 text-white text-xs rounded-xl px-3 py-2 outline-none focus:border-emerald-500" required>
+            </div>
+
+            <div>
+              <label class="block text-slate-300 text-xs font-medium mb-1">B.Tech Upcoming Exam Date</label>
+              <input type="date" id="cfgBtechDate" class="w-full bg-slate-800 border border-slate-700 text-white text-xs rounded-xl px-3 py-2 outline-none focus:border-indigo-500" required>
+            </div>
+
+            <div>
+              <label class="block text-slate-300 text-xs font-medium mb-1">B.Tech Target SGPA</label>
+              <input type="number" step="0.01" min="1" max="10" id="cfgBtechSgpa" class="w-full bg-slate-800 border border-slate-700 text-white text-xs rounded-xl px-3 py-2 outline-none focus:border-indigo-500" required>
+            </div>
+
+            <div>
+              <label class="block text-slate-300 text-xs font-medium mb-1">Daily Study Target (Hours)</label>
+              <input type="number" step="0.5" min="1" max="18" id="cfgDailyHours" class="w-full bg-slate-800 border border-slate-700 text-white text-xs rounded-xl px-3 py-2 outline-none focus:border-emerald-500" required>
+            </div>
+
+            <button type="submit" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl shadow transition touch-target">
+              Save Exam Targets
+            </button>
+          </form>
+
+          <!-- Backup, Export & Restore Card -->
+          <div class="bg-slate-900 p-5 rounded-2xl border border-slate-800 space-y-4">
+            <h3 class="text-xs font-bold text-white uppercase tracking-wider border-b border-slate-800 pb-2">
+              Data Management & Backup
+            </h3>
+            <p class="text-xs text-slate-400">
+              All your study data is stored securely in your browser's LocalStorage. Export regular backups to prevent any data loss across devices.
+            </p>
+
+            <div class="space-y-3 pt-2">
+              <button onclick="exportBackupData()" class="w-full flex items-center justify-center gap-2 py-2.5 bg-slate-800 hover:bg-slate-700 text-emerald-400 border border-slate-700 text-xs font-bold rounded-xl transition touch-target">
+                <span>📥</span> Export Complete JSON Backup
+              </button>
+
+              <label class="w-full flex items-center justify-center gap-2 py-2.5 bg-slate-800 hover:bg-slate-700 text-indigo-400 border border-slate-700 text-xs font-bold rounded-xl transition cursor-pointer touch-target">
+                <span>📤</span> Import / Restore Backup JSON
+                <input type="file" id="importJsonFileInput" accept=".json" onchange="importBackupData(event)" class="hidden">
+              </label>
+
+              <div class="pt-4 border-t border-slate-800 space-y-2">
+                <button onclick="confirmResetToDefault()" class="w-full py-2 bg-amber-950/40 hover:bg-amber-900/50 text-amber-300 border border-amber-800/40 text-xs font-semibold rounded-xl transition">
+                  🔄 Reset to Recommended Sample Plan
+                </button>
+                <button onclick="confirmClearAllData()" class="w-full py-2 bg-rose-950/40 hover:bg-rose-900/50 text-rose-400 border border-rose-800/40 text-xs font-semibold rounded-xl transition">
+                  ⚠️ Wipe All Data (Start Empty)
+                </button>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </section>
+
+    </main>
+  </div>
+
+  <nav class="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-slate-900/95 backdrop-blur border-t border-slate-800 px-2 py-1.5 flex items-center justify-around shadow-2xl">
+    <button onclick="switchView('dashboard')" class="mobile-nav-btn flex flex-col items-center justify-center py-1 px-2 text-slate-400 hover:text-white" data-view="dashboard">
+      <span class="text-lg">📊</span>
+      <span class="text-[10px] font-medium mt-0.5">Overview</span>
+    </button>
+    <button onclick="switchView('tasks')" class="mobile-nav-btn flex flex-col items-center justify-center py-1 px-2 text-slate-400 hover:text-white" data-view="tasks">
+      <span class="text-lg">📝</span>
+      <span class="text-[10px] font-medium mt-0.5">Tasks</span>
+    </button>
+    <button onclick="switchView('timer')" class="mobile-nav-btn flex flex-col items-center justify-center py-1 px-2 text-slate-400 hover:text-white" data-view="timer">
+      <span class="text-lg">⏱️</span>
+      <span class="text-[10px] font-medium mt-0.5">Timer</span>
+    </button>
+    <button onclick="switchView('nda')" class="mobile-nav-btn flex flex-col items-center justify-center py-1 px-2 text-slate-400 hover:text-white" data-view="nda">
+      <span class="text-lg">🎯</span>
+      <span class="text-[10px] font-medium mt-0.5">NDA</span>
+    </button>
+    <button onclick="switchView('btech')" class="mobile-nav-btn flex flex-col items-center justify-center py-1 px-2 text-slate-400 hover:text-white" data-view="btech">
+      <span class="text-lg">💻</span>
+      <span class="text-[10px] font-medium mt-0.5">B.Tech</span>
+    </button>
+    <button onclick="toggleMobileFullMenu()" class="flex flex-col items-center justify-center py-1 px-2 text-slate-400 hover:text-white">
+      <span class="text-lg">☰</span>
+      <span class="text-[10px] font-medium mt-0.5">More</span>
+    </button>
+  </nav>
+
+  <!-- MOBILE FULL MENU DRAWER -->
+  <div id="mobileFullDrawer" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex flex-col justify-end">
+    <div class="bg-slate-900 border-t border-slate-800 rounded-t-3xl p-5 space-y-4 max-h-[85vh] overflow-y-auto">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+        <h3 class="text-sm font-bold text-white">All Preparation Hubs</h3>
+        <button onclick="toggleMobileFullMenu()" class="p-1.5 text-slate-400 hover:text-white rounded-lg">✕</button>
+      </div>
+      <div class="grid grid-cols-2 gap-2 text-xs font-semibold">
+        <button onclick="switchViewMobile('dashboard')" class="p-3 bg-slate-800 rounded-xl text-left text-slate-200">📊 Dashboard</button>
+        <button onclick="switchViewMobile('tasks')" class="p-3 bg-slate-800 rounded-xl text-left text-slate-200">📝 Today's Tasks</button>
+        <button onclick="switchViewMobile('nda')" class="p-3 bg-emerald-950/40 border border-emerald-800/40 rounded-xl text-left text-emerald-300">🎯 NDA 2027 Hub</button>
+        <button onclick="switchViewMobile('btech')" class="p-3 bg-indigo-950/40 border border-indigo-800/40 rounded-xl text-left text-indigo-300">💻 B.Tech Hub</button>
+        <button onclick="switchViewMobile('subjects')" class="p-3 bg-slate-800 rounded-xl text-left text-slate-200">📚 Subjects & Syllabus</button>
+        <button onclick="switchViewMobile('timer')" class="p-3 bg-slate-800 rounded-xl text-left text-slate-200">⏱️ Study Timer</button>
+        <button onclick="switchViewMobile('mocks')" class="p-3 bg-slate-800 rounded-xl text-left text-slate-200">📈 Mock Tests</button>
+        <button onclick="switchViewMobile('pyqs')" class="p-3 bg-slate-800 rounded-xl text-left text-slate-200">📜 PYQ Tracker</button>
+        <button onclick="switchViewMobile('mistakes')" class="p-3 bg-slate-800 rounded-xl text-left text-slate-200">🔍 Mistake Notebook</button>
+        <button onclick="switchViewMobile('calendar')" class="p-3 bg-slate-800 rounded-xl text-left text-slate-200">📅 Calendar</button>
+        <button onclick="switchViewMobile('analytics')" class="p-3 bg-slate-800 rounded-xl text-left text-slate-200">📊 Analytics & Trends</button>
+        <button onclick="switchViewMobile('settings')" class="p-3 bg-slate-800 rounded-xl text-left text-slate-200">⚙️ Settings & Backup</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: ADD / EDIT TASK -->
+  <div id="modalTask" class="fixed inset-0 z-50 modal-backdrop hidden items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg p-5 sm:p-6 shadow-2xl relative space-y-4">
+      <div class="flex justify-between items-center pb-2 border-b border-slate-800">
+        <h3 id="taskModalTitle" class="text-base font-bold text-white">Create New Task</h3>
+        <button onclick="closeTaskModal()" class="text-slate-400 hover:text-white p-1">✕</button>
+      </div>
+      <form id="taskForm" onsubmit="handleTaskSubmit(event)" class="space-y-3.5 text-xs">
+        <input type="hidden" id="taskInputId">
+        <div>
+          <label class="block text-slate-300 font-medium mb-1">Task Title / Description *</label>
+          <input type="text" id="taskInputTitle" placeholder="e.g. Practice 25 NDA Calculus PYQs or C Data Structures Assignment" class="w-full bg-slate-800 border border-slate-700 text-white rounded-xl px-3 py-2 outline-none focus:border-emerald-500" required>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-slate-300 font-medium mb-1">Preparation Stream *</label>
+            <select id="taskInputStream" onchange="populateTaskSubjectOptions()" class="w-full bg-slate-800 border border-slate-700 text-white rounded-xl px-3 py-2 outline-none focus:border-emerald-500">
+              <option value="nda">🎯 NDA 2027</option>
+              <option value="btech">💻 B.Tech</option>
+              <option value="general">⚡ General Study</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-slate-300 font-medium mb-1">Subject</label>
+            <select id="taskInputSubject" class="w-full bg-slate-800 border border-slate-700 text-white rounded-xl px-3 py-2 outline-none focus:border-emerald-500">
+              <!-- Dynamically populated -->
+            </select>
+          </div>
+        </div>
+        <div class="grid grid-cols-3 gap-3">
+          <div>
+            <label class="block text-slate-300 font-medium mb-1">Date *</label>
+            <input type="date" id="taskInputDate" class="w-full bg-slate-800 border border-slate-700 text-white rounded-xl px-3 py-2 outline-none focus:border-emerald-500" required>
+          </div>
+          <div>
+            <label class="block text-slate-300 font-medium mb-1">Priority</label>
+            <select id="taskInputPriority" class="w-full bg-slate-800 border border-slate-700 text-white rounded-xl px-3 py-2 outline-none focus:border-emerald-500">
+              <option value="High">🔴 High</option>
+              <option value="Medium" selected>🟡 Medium</option>
+              <option value="Low">🟢 Low</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-slate-300 font-medium mb-1">Est. Minutes</label>
+            <input type="number" id="taskInputDuration" value="45" min="5" step="5" class="w-full bg-slate-800 border border-slate-700 text-white rounded-xl px-3 py-2 outline-none focus:border-emerald-500">
+          </div>
+        </div>
+        <div class="flex items-center gap-2 pt-2">
+          <input type="checkbox" id="taskInputCompleted" class="rounded bg-slate-800 border-slate-700 text-emerald-600 focus:ring-emerald-500 h-4 w-4">
+          <label for="taskInputCompleted" class="text-slate-300">Mark as completed already</label>
+        </div>
+        <div class="flex justify-end gap-2 pt-3 border-t border-slate-800">
+          <button type="button" onclick="closeTaskModal()" class="px-4 py-2 bg-slate-800 text-slate-300 rounded-xl hover:bg-slate-700">Cancel</button>
+          <button type="submit" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl shadow">Save Task</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: ADD / EDIT SUBJECT -->
+  <div id="modalSubject" class="fixed inset-0 z-50 modal-backdrop hidden items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-5 sm:p-6 shadow-2xl relative space-y-4">
+      <div class="flex justify-between items-center pb-2 border-b border-slate-800">
+        <h3 id="subjectModalTitle" class="text-base font-bold text-white">Add Subject</h3>
+        <button onclick="closeSubjectModal()" class="text-slate-400 hover:text-white p-1">✕</button>
+      </div>
+      <form id="subjectForm" onsubmit="handleSubjectSubmit(event)" class="space-y-3.5 text-xs">
+        <input type="hidden" id="subInputId">
+        <div>
+          <label class="block text-slate-300 font-medium mb-1">Subject Name *</label>
+          <input type="text" id="subInputName" placeholder="e.g. NDA Trigonometry or Digital Electronics" class="w-full bg-slate-800 border border-slate-700 text-white rounded-xl px-3 py-2 outline-none focus:border-emerald-500" required>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-slate-300 font-medium mb-1">Stream *</label>
+            <select id="subInputStream" class="w-full bg-slate-800 border border-slate-700 text-white rounded-xl px-3 py-2 outline-none focus:border-emerald-500">
+              <option value="nda">🎯 NDA 2027</option>
+              <option value="btech">💻 B.Tech</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-slate-300 font-medium mb-1">Paper / Category</label>
+            <input type="text" id="subInputCode" placeholder="e.g. Paper-1, Lab, Theory" class="w-full bg-slate-800 border border-slate-700 text-white rounded-xl px-3 py-2 outline-none">
+          </div>
+        </div>
+        <div>
+          <label class="block text-slate-300 font-medium mb-1">Target Prep Hours</label>
+          <input type="number" id="subInputTargetHours" value="60" min="5" class="w-full bg-slate-800 border border-slate-700 text-white rounded-xl px-3 py-2 outline-none">
+        </div>
+        <div class="flex justify-end gap-2 pt-3 border-t border-slate-800">
+          <button type="button" onclick="closeSubjectModal()" class="px-4 py-2 bg-slate-800 text-slate-300 rounded-xl hover:bg-slate-700">Cancel</button>
+          <button type="submit" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl shadow">Save Subject</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: ADD / EDIT CHAPTER -->
+  <div id="modalChapter" class="fixed inset-0 z-50 modal-backdrop hidden items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-5 sm:p-6 shadow-2xl relative space-y-4">
+      <div class="flex justify-between items-center pb-2 border-b border-slate-800">
+        <h3 id="chapterModalTitle" class="text-base font-bold text-white">Add Chapter / Topic</h3>
+        <button onclick="closeChapterModal()" class="text-slate-400 hover:text-white p-1">✕</button>
+      </div>
+      <form id="chapterForm" onsubmit="handleChapterSubmit(event)" class="space-y-3.5 text-xs">
+        <input type="hidden" id="chapInputSubjectId">
+        <input type="hidden" id="chapInputId">
+        <div>
+          <label class="block text-slate-300 font-medium mb-1">Chapter / Unit Title *</label>
+          <input type="text" id="chapInputTitle" placeholder="e.g. Matrices & Determinants or Binary Trees" class="w-full bg-slate-800 border border-slate-700 text-white rounded-xl px-3 py-2 outline-none focus:border-emerald-500" required>
+        </div>
+        <div>
+          <label class="block text-slate-300 font-medium mb-1">Status</label>
+          <select id="chapInputStatus" class="w-full bg-slate-800 border border-slate-700 text-white rounded-xl px-3 py-2 outline-none focus:border-emerald-500">
+            <option value="Not Started">⚪ Not Started</option>
+            <option value="In Progress">🟡 In Progress</option>
+            <option value="Completed">🟢 Completed</option>
+            <option value="Needs Revision">🔴 Needs Revision</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-slate-300 font-medium mb-1">Key Topics / Formulas (comma separated)</label>
+          <textarea id="chapInputTopics" rows="2" placeholder="e.g. Cramers Rule, Inverse of Matrix, Properties of Determinants" class="w-full bg-slate-800 border border-slate-700 text-white rounded-xl px-3 py-2 outline-none"></textarea>
+        </div>
+        <div class="flex justify-end gap-2 pt-3 border-t border-slate-800">
+          <button type="button" onclick="closeChapterModal()" class="px-4 py-2 bg-slate-800 text-slate-300 rounded-xl hover:bg-slate-700">Cancel</button>
+          <button type="submit" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl shadow">Save Chapter</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: ADD / EDIT MOCK TEST -->
+  <div id="modalMock" class="fixed inset-0 z-50 modal-backdrop hidden items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-5 sm:p-6 shadow-2xl relative space-y-4">
+      <div class="flex justify-between items-center pb-2 border-b border-slate-800">
+        <h3 id="mockModalTitle" class="text-base font-bold text-white">Log Mock Test</h3>
+        <button onclick="closeMockModal()" class="text-slate-400 hover:text-white p-1">✕</button>
+      </div>
+      <form id="mockForm" onsubmit="handleMockSubmit(event)" class="space-y-3.5 text-xs">
+        <input type="hidden" id="mockInputId">
+        <div>
+          <label class="block text-slate-300 font-medium mb-1">Mock / Exam Title *</label>
+          <input type="text" id="mockInputTitle" placeholder="e.g. NDA Maths Mock 03 or B.Tech Mid-Sem Physics" class="w-full bg-slate-800 border border-slate-700 text-white rounded-xl px-3 py-2 outline-none focus:border-emerald-500" required>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-slate-300 font-medium mb-1">Stream</label>
+            <select id="mockInputStream" class="w-full bg-slate-800 border border-slate-700 text-white rounded-xl px-3 py-2 outline-none">
+              <option value="nda">🎯 NDA</option>
+              <option value="btech">💻 B.Tech</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-slate-300 font-medium mb-1">Date Attempted</label>
+            <input type="date" id="mockInputDate" class="w-full bg-slate-800 border border-slate-700 text-white rounded-xl px-3 py-2 outline-none" required>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-slate-300 font-medium mb-1">Score Obtained *</label>
+            <input type="number" step="0.5" id="mockInputScore" class="w-full bg-slate-800 border border-slate-700 text-white rounded-xl px-3 py-2 outline-none focus:border-emerald-500" required>
+          </div>
+          <div>
+            <label class="block text-slate-300 font-medium mb-1">Maximum Marks *</label>
+            <input type="number" id="mockInputMaxScore" value="300" class="w-full bg-slate-800 border border-slate-700 text-white rounded-xl px-3 py-2 outline-none focus:border-emerald-500" required>
+          </div>
+        </div>
+        <div>
+          <label class="block text-slate-300 font-medium mb-1">Analysis & Weak Areas</label>
+          <textarea id="mockInputNotes" rows="2" placeholder="e.g. Negative marking high in Calculus. English vocab was strong." class="w-full bg-slate-800 border border-slate-700 text-white rounded-xl px-3 py-2 outline-none"></textarea>
+        </div>
+        <div class="flex justify-end gap-2 pt-3 border-t border-slate-800">
+          <button type="button" onclick="closeMockModal()" class="px-4 py-2 bg-slate-800 text-slate-300 rounded-xl hover:bg-slate-700">Cancel</button>
+          <button type="submit" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl shadow">Save Test</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: ADD / EDIT PYQ -->
+  <div id="modalPyq" class="fixed inset-0 z-50 modal-backdrop hidden items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-5 sm:p-6 shadow-2xl relative space-y-4">
+      <div class="flex justify-between items-center pb-2 border-b border-slate-800">
+        <h3 id="pyqModalTitle" class="text-base font-bold text-white">Log PYQ Practice</h3>
+        <button onclick="closePyqModal()" class="text-slate-400 hover:text-white p-1">✕</button>
+      </div>
+      <form id="pyqForm" onsubmit="handlePyqSubmit(event)" class="space-y-3.5 text-xs">
+        <input type="hidden" id="pyqInputId">
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-slate-300 font-medium mb-1">Stream</label>
+            <select id="pyqInputStream" class="w-full bg-slate-800 border border-slate-700 text-white rounded-xl px-3 py-2 outline-none">
+              <option value="nda">🎯 NDA</option>
+              <option value="btech">💻 B.Tech</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-slate-300 font-medium mb-1">Paper Year / Exam</label>
+            <input type="text" id="pyqInputYear" placeholder="e.g. 2024-I or 2023 EndSem" class="w-full bg-slate-800 border border-slate-700 text-white rounded-xl px-3 py-2 outline-none" required>
+          </div>
+        </div>
+        <div>
+          <label class="block text-slate-300 font-medium mb-1">Topic / Chapter *</label>
+          <input type="text" id="pyqInputTopic" placeholder="e.g. Limits & Continuity or Dynamic Memory" class="w-full bg-slate-800 border border-slate-700 text-white rounded-xl px-3 py-2 outline-none" required>
+        </div>
+        <div class="grid grid-cols-3 gap-2">
+          <div>
+            <label class="block text-slate-300 font-medium mb-1">Total Qs</label>
+            <input type="number" id="pyqInputTotalQ" value="30" min="1" class="w-full bg-slate-800 border border-slate-700 text-white rounded-xl px-3 py-2 outline-none">
+          </div>
+          <div>
+            <label class="block text-slate-300 font-medium mb-1">Attempted</label>
+            <input type="number" id="pyqInputSolvedQ" value="25" min="0" class="w-full bg-slate-800 border border-slate-700 text-white rounded-xl px-3 py-2 outline-none">
+          </div>
+          <div>
+            <label class="block text-slate-300 font-medium mb-1">Correct</label>
+            <input type="number" id="pyqInputCorrectQ" value="20" min="0" class="w-full bg-slate-800 border border-slate-700 text-white rounded-xl px-3 py-2 outline-none">
+          </div>
+        </div>
+        <div>
+          <label class="block text-slate-300 font-medium mb-1">Review Status</label>
+          <select id="pyqInputStatus" class="w-full bg-slate-800 border border-slate-700 text-white rounded-xl px-3 py-2 outline-none">
+            <option value="Mastered">🟢 Mastered (Accuracy > 80%)</option>
+            <option value="Analyzed">🟡 Analyzed (Needs 2nd review)</option>
+            <option value="Rough Attempt">🔴 Rough Attempt (High error rate)</option>
+          </select>
+        </div>
+        <div class="flex justify-end gap-2 pt-3 border-t border-slate-800">
+          <button type="button" onclick="closePyqModal()" class="px-4 py-2 bg-slate-800 text-slate-300 rounded-xl hover:bg-slate-700">Cancel</button>
+          <button type="submit" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl shadow">Save PYQ Record</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: ADD / EDIT MISTAKE RECORD -->
+  <div id="modalMistake" class="fixed inset-0 z-50 modal-backdrop hidden items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg p-5 sm:p-6 shadow-2xl relative space-y-4">
+      <div class="flex justify-between items-center pb-2 border-b border-slate-800">
+        <h3 id="mistakeModalTitle" class="text-base font-bold text-white">Record Mistake for Spaced Revision</h3>
+        <button onclick="closeMistakeModal()" class="text-slate-400 hover:text-white p-1">✕</button>
+      </div>
+      <form id="mistakeForm" onsubmit="handleMistakeSubmit(event)" class="space-y-3.5 text-xs">
+        <input type="hidden" id="misInputId">
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-slate-300 font-medium mb-1">Stream</label>
+            <select id="misInputStream" class="w-full bg-slate-800 border border-slate-700 text-white rounded-xl px-3 py-2 outline-none">
+              <option value="nda">🎯 NDA</option>
+              <option value="btech">💻 B.Tech</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-slate-300 font-medium mb-1">Mistake Nature</label>
+            <select id="misInputType" class="w-full bg-slate-800 border border-slate-700 text-white rounded-xl px-3 py-2 outline-none">
+              <option value="Conceptual">🧠 Conceptual Misunderstanding</option>
+              <option value="Formula">📐 Formula Recall Failure</option>
+              <option value="Silly">⚡ Silly Calculation Error</option>
+              <option value="Time Pressure">⏱️ Time Management Panic</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label class="block text-slate-300 font-medium mb-1">Subject / Topic *</label>
+          <input type="text" id="misInputTopic" placeholder="e.g. Integration by parts or Pointer dereferencing" class="w-full bg-slate-800 border border-slate-700 text-white rounded-xl px-3 py-2 outline-none" required>
+        </div>
+        <div>
+          <label class="block text-slate-300 font-medium mb-1">The Question & Where You Failed *</label>
+          <textarea id="misInputQuestion" rows="2" placeholder="Describe the question and the erroneous assumption you made..." class="w-full bg-slate-800 border border-slate-700 text-white rounded-xl px-3 py-2 outline-none" required></textarea>
+        </div>
+        <div>
+          <label class="block text-slate-300 font-medium mb-1">Correction & Key Rule to Remember *</label>
+          <textarea id="misInputCorrection" rows="2" placeholder="The correct derivation, rule, or mnemonic..." class="w-full bg-slate-800 border border-slate-700 text-white rounded-xl px-3 py-2 outline-none" required></textarea>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-slate-300 font-medium mb-1">Next Revision Due *</label>
+            <input type="date" id="misInputDate" class="w-full bg-slate-800 border border-slate-700 text-white rounded-xl px-3 py-2 outline-none" required>
+          </div>
+          <div class="flex items-center gap-2 pt-5">
+            <input type="checkbox" id="misInputMastered" class="rounded bg-slate-800 border-slate-700 text-emerald-600 focus:ring-emerald-500 h-4 w-4">
+            <label for="misInputMastered" class="text-slate-300">Mark as Mastered</label>
+          </div>
+        </div>
+        <div class="flex justify-end gap-2 pt-3 border-t border-slate-800">
+          <button type="button" onclick="closeMistakeModal()" class="px-4 py-2 bg-slate-800 text-slate-300 rounded-xl hover:bg-slate-700">Cancel</button>
+          <button type="submit" class="px-5 py-2 bg-rose-600 hover:bg-rose-500 text-white font-bold rounded-xl shadow">Save Mistake</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: RESCHEDULE TASK -->
+  <div id="modalReschedule" class="fixed inset-0 z-50 modal-backdrop hidden items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-sm p-5 shadow-2xl relative space-y-4">
+      <div class="flex justify-between items-center pb-2 border-b border-slate-800">
+        <h3 class="text-sm font-bold text-white">Reschedule Task</h3>
+        <button onclick="closeRescheduleModal()" class="text-slate-400 hover:text-white p-1">✕</button>
+      </div>
+      <div class="space-y-3 text-xs">
+        <input type="hidden" id="rescheduleTaskId">
+        <p id="rescheduleTaskTitle" class="text-slate-300 font-medium">Task title</p>
+        <div>
+          <label class="block text-slate-400 mb-1">Pick New Scheduled Date:</label>
+          <input type="date" id="rescheduleDateInput" class="w-full bg-slate-800 border border-slate-700 text-white rounded-xl px-3 py-2 outline-none">
+        </div>
+        <div class="flex justify-end gap-2 pt-2">
+          <button type="button" onclick="closeRescheduleModal()" class="px-3 py-1.5 bg-slate-800 text-slate-300 rounded-lg">Cancel</button>
+          <button type="button" onclick="saveRescheduleTask()" class="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-lg">Apply</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: MANUAL LOG HOURS -->
+  <div id="modalLogHours" class="fixed inset-0 z-50 modal-backdrop hidden items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-sm p-5 shadow-2xl relative space-y-4">
+      <div class="flex justify-between items-center pb-2 border-b border-slate-800">
+        <h3 class="text-sm font-bold text-white">Log Study Session</h3>
+        <button onclick="closeLogHoursModal()" class="text-slate-400 hover:text-white p-1">✕</button>
+      </div>
+      <form onsubmit="handleManualLogHours(event)" class="space-y-3 text-xs">
+        <div>
+          <label class="block text-slate-400 mb-1">Subject</label>
+          <select id="logHoursSubjectSelect" class="w-full bg-slate-800 border border-slate-700 text-white rounded-xl px-3 py-2 outline-none">
+            <!-- Dynamically populated -->
+          </select>
+        </div>
+        <div>
+          <label class="block text-slate-400 mb-1">Minutes Studied</label>
+          <input type="number" id="logHoursMinutes" value="60" min="5" step="5" class="w-full bg-slate-800 border border-slate-700 text-white rounded-xl px-3 py-2 outline-none" required>
+        </div>
+        <div>
+          <label class="block text-slate-400 mb-1">Quick Note</label>
+          <input type="text" id="logHoursNotes" placeholder="e.g. Solved 15 differential equations" class="w-full bg-slate-800 border border-slate-700 text-white rounded-xl px-3 py-2 outline-none">
+        </div>
+        <div class="flex justify-end gap-2 pt-2">
+          <button type="button" onclick="closeLogHoursModal()" class="px-3 py-1.5 bg-slate-800 text-slate-300 rounded-lg">Cancel</button>
+          <button type="submit" class="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-lg">Record Hours</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: CONFIRMATION DIALOG (Zero Alert/Confirm) -->
+  <div id="modalConfirm" class="fixed inset-0 z-50 modal-backdrop hidden items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-sm p-5 shadow-2xl relative space-y-4 text-center">
+      <div class="w-12 h-12 rounded-full bg-rose-500/10 text-rose-400 border border-rose-500/20 mx-auto flex items-center justify-center text-xl">
+        ⚠️
+      </div>
+      <div>
+        <h4 id="confirmModalTitle" class="text-base font-bold text-white">Are you sure?</h4>
+        <p id="confirmModalMessage" class="text-xs text-slate-400 mt-1">This action cannot be undone.</p>
+      </div>
+      <div class="flex justify-center gap-3 pt-2">
+        <button id="confirmModalCancelBtn" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-xl">Cancel</button>
+        <button id="confirmModalActionBtn" class="px-5 py-2 bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold rounded-xl shadow">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATIONS CONTAINER -->
+  <div id="toastContainer" class="fixed top-4 right-4 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+  <script>
+    /* Global Storage Key */
+    const STORAGE_KEY = 'nda_btech_study_tracker_data_v1';
+
+    /* Default Seed Data (Realistic NDA 2027 & B.Tech 1st/2nd Year Syllabus) */
+    const DEFAULT_DATA = {
+      profile: {
+        ndaExamDate: '2027-04-18',
+        ndaTargetScore: 480,
+        btechExamDate: '2026-12-15',
+        btechTargetSgpa: 8.50,
+        dailyHourGoal: 6.0,
+        streak: 7,
+        lastActiveDate: new Date().toISOString().split('T')[0]
+      },
+      subjects: [
+        {
+          id: 'sub_nda_math',
+          stream: 'nda',
+          name: 'NDA Mathematics (Paper 1)',
+          code: 'MATH-120Q',
+          targetHours: 180,
+          chapters: [
+            { id: 'c1', title: 'Calculus & Derivatives', status: 'In Progress', topics: ['Limits', 'Derivatives Application', 'Definite Integrals'] },
+            { id: 'c2', title: 'Matrices & Determinants', status: 'Completed', topics: ['Inverse', 'Adjoint', 'Cramers Rule', 'Properties'] },
+            { id: 'c3', title: 'Trigonometry & Inverse Trig', status: 'In Progress', topics: ['Identities', 'Heights & Distances', 'General Solution'] },
+            { id: 'c4', title: 'Vector Algebra & 3D Geometry', status: 'Not Started', topics: ['Dot/Cross Product', 'Planes', 'Direction Cosines'] },
+            { id: 'c5', title: 'Probability & Statistics', status: 'Needs Revision', topics: ['Bayes Theorem', 'Mean/Variance', 'Binomial Distribution'] }
+          ]
+        },
+        {
+          id: 'sub_nda_gat',
+          stream: 'nda',
+          name: 'NDA General Ability (GAT Paper 2)',
+          code: 'GAT-150Q',
+          targetHours: 200,
+          chapters: [
+            { id: 'c6', title: 'English Grammar & Vocabulary', status: 'In Progress', topics: ['Spotting Errors', 'Antonyms & Synonyms', 'Idioms'] },
+            { id: 'c7', title: 'Physics (Mechanics & Optics)', status: 'Completed', topics: ['Newtons Laws', 'Refraction', 'Current Electricity'] },
+            { id: 'c8', title: 'Indian Modern History & Polity', status: 'In Progress', topics: ['1857 Revolt', 'Fundamental Rights', 'Preamble'] },
+            { id: 'c9', title: 'General Science & Chemistry', status: 'Not Started', topics: ['Acids & Bases', 'Oxidation', 'Carbon Compounds'] },
+            { id: 'c10', title: 'Defence & Monthly Current Affairs', status: 'In Progress', topics: ['Joint Military Exercises', 'Appointments', 'Missiles'] }
+          ]
+        },
+        {
+          id: 'sub_bt_math',
+          stream: 'btech',
+          name: 'Engineering Mathematics',
+          code: 'BSC-MATH',
+          targetHours: 70,
+          chapters: [
+            { id: 'c11', title: 'Unit 1: Linear Algebra & Eigenvalues', status: 'Completed', topics: ['Cayley Hamilton', 'Orthogonal Transform'] },
+            { id: 'c12', title: 'Unit 2: Multiple Integrals', status: 'In Progress', topics: ['Double Integrals', 'Change of Variables'] },
+            { id: 'c13', title: 'Unit 3: Ordinary Differential Eqns', status: 'Not Started', topics: ['Higher order ODEs', 'Variation of Parameters'] }
+          ]
+        },
+        {
+          id: 'sub_bt_prog',
+          stream: 'btech',
+          name: 'Data Structures & Algorithms in C',
+          code: 'CSE-102',
+          targetHours: 90,
+          chapters: [
+            { id: 'c14', title: 'Pointers & Dynamic Memory', status: 'Completed', topics: ['malloc', 'free', 'Pointers to Pointers'] },
+            { id: 'c15', title: 'Linked Lists & Stacks', status: 'In Progress', topics: ['Singly & Doubly Lists', 'Infix to Postfix'] },
+            { id: 'c16', title: 'Binary Search Trees & Graphs', status: 'Not Started', topics: ['Tree Traversals', 'BFS & DFS'] }
+          ]
+        },
+        {
+          id: 'sub_bt_de',
+          stream: 'btech',
+          name: 'Digital Logic & Circuit Design',
+          code: 'ECE-103',
+          targetHours: 65,
+          chapters: [
+            { id: 'c17', title: 'Boolean Algebra & K-Maps', status: 'Completed', topics: ['4-variable K-maps', 'Don’t care conditions'] },
+            { id: 'c18', title: 'Combinational Circuits', status: 'In Progress', topics: ['Multiplexers', 'Adders/Subtractors'] }
+          ]
+        }
+      ],
+      tasks: [
+        {
+          id: 't_demo_1',
+          title: 'Solve 30 NDA PYQs on Definite Integrals',
+          stream: 'nda',
+          subjectId: 'sub_nda_math',
+          date: new Date().toISOString().split('T')[0],
+          priority: 'High',
+          duration: 60,
+          completed: false
+        },
+        {
+          id: 't_demo_2',
+          title: 'C Programming Lab: Implement Doubly Linked List',
+          stream: 'btech',
+          subjectId: 'sub_bt_prog',
+          date: new Date().toISOString().split('T')[0],
+          priority: 'Medium',
+          duration: 90,
+          completed: true
+        },
+        {
+          id: 't_demo_3',
+          title: 'Review 50 Synonyms & Antonyms for NDA GAT',
+          stream: 'nda',
+          subjectId: 'sub_nda_gat',
+          date: new Date().toISOString().split('T')[0],
+          priority: 'Low',
+          duration: 30,
+          completed: false
+        }
+      ],
+      studyLogs: [
+        {
+          id: 'log_1',
+          date: new Date().toISOString().split('T')[0],
+          minutes: 90,
+          stream: 'btech',
+          subjectId: 'sub_bt_prog',
+          notes: 'Implemented doubly linked list insertion'
+        },
+        {
+          id: 'log_2',
+          date: new Date().toISOString().split('T')[0],
+          minutes: 60,
+          stream: 'nda',
+          subjectId: 'sub_nda_math',
+          notes: 'Definite integrals properties'
+        }
+      ],
+      mockTests: [
+        {
+          id: 'mock_1',
+          stream: 'nda',
+          title: 'NDA Full Mock 01 (Maths)',
+          date: '2026-09-15',
+          score: 138,
+          maxScore: 300,
+          notes: 'Need to skip lengthy coordinate geometry questions quickly'
+        },
+        {
+          id: 'mock_2',
+          stream: 'nda',
+          title: 'NDA GAT Sectional 01',
+          date: '2026-09-18',
+          score: 340,
+          maxScore: 600,
+          notes: 'English scored 160/200; Physics questions were solid'
+        },
+        {
+          id: 'mock_3',
+          stream: 'btech',
+          title: 'Mid-Sem Mock: Engineering Mathematics',
+          date: '2026-09-20',
+          score: 42,
+          maxScore: 50,
+          notes: 'Lost marks on rank of matrix edge condition'
+        }
+      ],
+      pyqs: [
+        {
+          id: 'pyq_1',
+          stream: 'nda',
+          year: '2024-I',
+          topic: 'Calculus & Derivatives',
+          totalQ: 28,
+          solvedQ: 26,
+          correctQ: 22,
+          status: 'Mastered'
+        },
+        {
+          id: 'pyq_2',
+          stream: 'nda',
+          year: '2023-II',
+          topic: 'Trigonometric Equations',
+          totalQ: 15,
+          solvedQ: 14,
+          correctQ: 9,
+          status: 'Analyzed'
+        },
+        {
+          id: 'pyq_3',
+          stream: 'btech',
+          year: '2023 End-Sem',
+          topic: 'Pointers & Dynamic Memory',
+          totalQ: 10,
+          solvedQ: 10,
+          correctQ: 9,
+          status: 'Mastered'
+        }
+      ],
+      mistakes: [
+        {
+          id: 'mis_1',
+          stream: 'nda',
+          topic: 'Calculus: Integration by Parts',
+          type: 'Formula',
+          question: 'Failed sign in integral of u*v dx when v was a trigonometric function',
+          correction: 'Always use ILATE hierarchy and write down standard uv - integral(v du) before applying values',
+          nextRevisionDate: new Date().toISOString().split('T')[0],
+          mastered: false
+        },
+        {
+          id: 'mis_2',
+          stream: 'btech',
+          topic: 'C Structs: Padding and Alignment',
+          type: 'Conceptual',
+          question: 'Calculated sizeof(struct) incorrectly assuming direct sum of member bytes',
+          correction: 'Structure padding aligns variables to machine word boundaries (usually 4 or 8 bytes)',
+          nextRevisionDate: new Date(Date.now() + 86400000).toISOString().split('T')[0],
+          mastered: false
+        }
+      ]
+    };
+
+    /* App State */
+    let appData = null;
+    let currentActiveView = 'dashboard';
+    let currentTaskFilter = 'all';
+    let currentSubjectStreamFilter = 'all';
+    let currentMistakeFilter = 'all';
+
+    /* Calendar State */
+    let calCurrentYear = new Date().getFullYear();
+    let calCurrentMonth = new Date().getMonth();
+    let calSelectedDate = new Date().toISOString().split('T')[0];
+
+    /* Timer State */
+    let timerInterval = null;
+    let timerMode = 'pomodoro'; // 'pomodoro', 'focus', 'shortBreak', 'stopwatch'
+    let timerSecondsLeft = 25 * 60;
+    let timerInitialSeconds = 25 * 60;
+    let timerIsRunning = false;
+    let timerElapsedForStopwatch = 0;
+
+    function loadData() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          appData = JSON.parse(raw);
+          // Check date streak
+          checkStreak();
+        } else {
+          appData = JSON.parse(JSON.stringify(DEFAULT_DATA));
+          saveData();
+        }
+      } catch (e) {
+        console.error('Error loading data from localStorage:', e);
+        appData = JSON.parse(JSON.stringify(DEFAULT_DATA));
+      }
+    }
+
+    function saveData() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(appData));
+      } catch (e) {
+        showToast('Storage limit reached or error saving data', 'error');
+      }
+    }
+
+    function checkStreak() {
+      const today = new Date().toISOString().split('T')[0];
+      const lastActive = appData.profile.lastActiveDate;
+      if (!lastActive) {
+        appData.profile.lastActiveDate = today;
+        appData.profile.streak = 1;
+        return;
+      }
+      if (lastActive === today) return;
+
+      const lastDate = new Date(lastActive);
+      const currDate = new Date(today);
+      const diffTime = Math.abs(currDate - lastDate);
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+      if (diffDays === 1) {
+        appData.profile.streak = (appData.profile.streak || 0) + 1;
+      } else if (diffDays > 1) {
+        appData.profile.streak = 1;
+      }
+      appData.profile.lastActiveDate = today;
+      saveData();
+    }
+
+    /* Web Audio API Chime */
+    function playChime(type = 'success') {
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+
+        if (type === 'success') {
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(523.25, ctx.currentTime); // C5
+          osc.frequency.exponentialRampToValueAtTime(783.99, ctx.currentTime + 0.15); // G5
+          gain.gain.setValueAtTime(0.2, ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
+          osc.start();
+          osc.stop(ctx.currentTime + 0.35);
+        } else if (type === 'bell') {
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(880, ctx.currentTime);
+          gain.gain.setValueAtTime(0.25, ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.8);
+          osc.start();
+          osc.stop(ctx.currentTime + 0.8);
+        }
+      } catch (e) {
+        // audio context blocked or not supported
+      }
+    }
+
+    /* Custom Toast system */
+    function showToast(message, type = 'success') {
+      const container = document.getElementById('toastContainer');
+      if (!container) return;
+
+      const toast = document.createElement('div');
+      const colors = {
+        success: 'bg-emerald-950/90 border-emerald-500/40 text-emerald-200',
+        error: 'bg-rose-950/90 border-rose-500/40 text-rose-200',
+        info: 'bg-slate-900/90 border-slate-700 text-slate-200'
+      };
+      toast.className = `px-4 py-2.5 rounded-xl border shadow-xl text-xs font-semibold backdrop-blur flex items-center gap-2 transform transition-all duration-200 translate-y-2 opacity-0 pointer-events-auto ${colors[type] || colors.info}`;
+      
+      const icon = type === 'success' ? '✅' : (type === 'error' ? '❌' : 'ℹ️');
+      toast.innerHTML = `<span>${icon}</span> <span>${message}</span>`;
+      
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.classList.remove('translate-y-2', 'opacity-0');
+      }, 20);
+
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'translate-y-2');
+        setTimeout(() => toast.remove(), 250);
+      }, 3000);
+    }
+
+    /* Custom Modal Confirm dialog */
+    function showConfirmModal({ title, message, onConfirm }) {
+      const modal = document.getElementById('modalConfirm');
+      const titleEl = document.getElementById('confirmModalTitle');
+      const msgEl = document.getElementById('confirmModalMessage');
+      const actionBtn = document.getElementById('confirmModalActionBtn');
+      const cancelBtn = document.getElementById('confirmModalCancelBtn');
+
+      titleEl.textContent = title || 'Confirm Action';
+      msgEl.textContent = message || 'Are you sure you want to proceed?';
+
+      const cleanup = () => {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+        actionBtn.onclick = null;
+        cancelBtn.onclick = null;
+      };
+
+      actionBtn.onclick = () => {
+        cleanup();
+        if (onConfirm) onConfirm();
+      };
+      cancelBtn.onclick = cleanup;
+
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function switchView(viewName) {
+      currentActiveView = viewName;
+      
+      // Hide all view containers
+      document.querySelectorAll('.view-container').forEach(el => el.classList.remove('active'));
+      const activeEl = document.getElementById(`view-${viewName}`);
+      if (activeEl) activeEl.classList.add('active');
+
+      // Update sidebar nav buttons
+      document.querySelectorAll('.nav-btn').forEach(btn => {
+        if (btn.getAttribute('data-view') === viewName) {
+          btn.classList.add('bg-slate-800', 'text-white');
+        } else {
+          btn.classList.remove('bg-slate-800', 'text-white');
+        }
+      });
+
+      // Update mobile nav buttons
+      document.querySelectorAll('.mobile-nav-btn').forEach(btn => {
+        if (btn.getAttribute('data-view') === viewName) {
+          btn.classList.add('text-emerald-400');
+          btn.classList.remove('text-slate-400');
+        } else {
+          btn.classList.remove('text-emerald-400');
+          btn.classList.add('text-slate-400');
+        }
+      });
+
+      // Render view-specific content
+      renderAll();
+      window.scrollTo({ top: 0, behavior: 'instant' });
+    }
+
+    function switchViewMobile(viewName) {
+      toggleMobileFullMenu();
+      switchView(viewName);
+    }
+
+    function toggleMobileFullMenu() {
+      const drawer = document.getElementById('mobileFullDrawer');
+      if (drawer.classList.contains('hidden')) {
+        drawer.classList.remove('hidden');
+      } else {
+        drawer.classList.add('hidden');
+      }
+    }
+
+    function getDaysDiff(targetDateStr) {
+      if (!targetDateStr) return 0;
+      const target = new Date(targetDateStr);
+      const now = new Date();
+      now.setHours(0,0,0,0);
+      target.setHours(0,0,0,0);
+      const diff = Math.ceil((target - now) / (1000 * 60 * 60 * 24));
+      return diff > 0 ? diff : 0;
+    }
+
+    function getTodayTotalStudyMinutes() {
+      const today = new Date().toISOString().split('T')[0];
+      return appData.studyLogs
+        .filter(l => l.date === today)
+        .reduce((sum, l) => sum + (l.minutes || 0), 0);
+    }
+
+    function getSyllabusStats(stream) {
+      const streamSubs = appData.subjects.filter(s => s.stream === stream);
+      let totalChapters = 0;
+      let completedChapters = 0;
+
+      streamSubs.forEach(s => {
+        if (s.chapters) {
+          totalChapters += s.chapters.length;
+          completedChapters += s.chapters.filter(c => c.status === 'Completed').length;
+        }
+      });
+
+      const pct = totalChapters > 0 ? Math.round((completedChapters / totalChapters) * 100) : 0;
+      return { totalChapters, completedChapters, pct };
+    }
+
+    function updateHeaderStats() {
+      // Date formatting
+      const options = { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' };
+      const dateText = new Date().toLocaleDateString('en-US', options);
+      const dateEl = document.getElementById('headerDateDisplay');
+      if (dateEl) dateEl.textContent = dateText;
+
+      // Countdowns
+      const ndaDays = getDaysDiff(appData.profile.ndaExamDate);
+      const btechDays = getDaysDiff(appData.profile.btechExamDate);
+      document.getElementById('ndaDaysCount').textContent = ndaDays;
+      document.getElementById('btechDaysCount').textContent = btechDays;
+      document.getElementById('streakCount').textContent = appData.profile.streak || 0;
+
+      // Pending tasks badge in sidebar
+      const today = new Date().toISOString().split('T')[0];
+      const pendingToday = appData.tasks.filter(t => t.date === today && !t.completed).length;
+      document.getElementById('sideTaskPendingBadge').textContent = pendingToday;
+
+      // Today's hours in sidebar
+      const todayMins = getTodayTotalStudyMinutes();
+      const todayHours = (todayMins / 60).toFixed(1);
+      const targetGoal = appData.profile.dailyHourGoal || 6.0;
+      document.getElementById('sidebarHoursDisplay').textContent = `${todayHours} / ${targetGoal}h`;
+      const pctGoal = Math.min(100, Math.round((todayHours / targetGoal) * 100));
+      document.getElementById('sidebarHoursBar').style.width = `${pctGoal}%`;
+    }
+
+    function renderDashboard() {
+      // Metrics & Targets
+      document.getElementById('dashNdaTarget').textContent = `${appData.profile.ndaTargetScore || 480} / 900`;
+      document.getElementById('dashBtechTarget').textContent = (appData.profile.btechTargetSgpa || 8.50).toFixed(2);
+      
+      const today = new Date().toISOString().split('T')[0];
+      const todayTasks = appData.tasks.filter(t => t.date === today);
+      const doneTasks = todayTasks.filter(t => t.completed).length;
+      const totalTasks = todayTasks.length;
+      const tasksPct = totalTasks > 0 ? Math.round((doneTasks / totalTasks) * 100) : 0;
+      
+      document.getElementById('dashTasksStat').textContent = `${doneTasks} / ${totalTasks}`;
+      document.getElementById('dashTasksPercent').textContent = `${tasksPct}% finished`;
+      document.getElementById('dashTodayCount').textContent = totalTasks;
+
+      const todayMins = getTodayTotalStudyMinutes();
+      const todayHours = (todayMins / 60).toFixed(1);
+      const goalHours = appData.profile.dailyHourGoal || 6.0;
+      document.getElementById('dashStudyLogged').textContent = `${todayHours}h`;
+      document.getElementById('dashStudyTarget').textContent = `Target: ${goalHours}h`;
+
+      const statusEl = document.getElementById('dashGoalStatusText');
+      if (todayHours >= goalHours) {
+        statusEl.textContent = 'Goal Achieved! 🎉';
+        statusEl.parentElement.className = 'inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 text-xs font-semibold mb-2';
+      } else {
+        statusEl.textContent = `${(goalHours - todayHours).toFixed(1)}h remaining`;
+        statusEl.parentElement.className = 'inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-300 text-xs font-semibold mb-2';
+      }
+
+      // Syllabus progress
+      const ndaStats = getSyllabusStats('nda');
+      const btechStats = getSyllabusStats('btech');
+      document.getElementById('dashNdaSyllabusPct').textContent = `${ndaStats.pct}%`;
+      document.getElementById('dashNdaSyllabusBar').style.width = `${ndaStats.pct}%`;
+      document.getElementById('dashNdaChaptersDone').textContent = `${ndaStats.completedChapters}/${ndaStats.totalChapters} Chapters Done`;
+
+      document.getElementById('dashBtechSyllabusPct').textContent = `${btechStats.pct}%`;
+      document.getElementById('dashBtechSyllabusBar').style.width = `${btechStats.pct}%`;
+      document.getElementById('dashBtechChaptersDone').textContent = `${btechStats.completedChapters}/${btechStats.totalChapters} Units Done`;
+
+      // Mock Test latest
+      const ndaMocks = appData.mockTests.filter(m => m.stream === 'nda');
+      if (ndaMocks.length > 0) {
+        const latest = ndaMocks[ndaMocks.length - 1];
+        document.getElementById('dashLatestMockNda').textContent = `${latest.score} / ${latest.maxScore}`;
+      } else {
+        document.getElementById('dashLatestMockNda').textContent = 'No mocks yet';
+      }
+
+      // Total PYQs
+      const totalPyqCount = appData.pyqs.reduce((acc, p) => acc + (p.solvedQ || 0), 0);
+      document.getElementById('dashPyqsCount').textContent = `${totalPyqCount} Solved`;
+
+      // Render today's task checklist
+      const taskContainer = document.getElementById('dashTasksList');
+      if (todayTasks.length === 0) {
+        taskContainer.innerHTML = `
+          <div class="p-6 rounded-2xl bg-slate-900 border border-slate-800 text-center text-slate-400 text-xs">
+            <span class="text-2xl block mb-2">🏖️</span>
+            No tasks scheduled for today yet. 
+            <button onclick="openTaskModal()" class="text-emerald-400 underline font-semibold ml-1">Add your first task</button>
+          </div>
+        `;
+      } else {
+        taskContainer.innerHTML = todayTasks.map(t => createTaskItemHtml(t)).join('');
+      }
+
+      // Render Revision Due today
+      const revContainer = document.getElementById('dashRevisionList');
+      const dueMistakes = appData.mistakes.filter(m => !m.mastered && m.nextRevisionDate <= today);
+      if (dueMistakes.length === 0) {
+        revContainer.innerHTML = `<p class="text-slate-400 italic">No revision traps due today. Great job keeping notes up to date!</p>`;
+      } else {
+        revContainer.innerHTML = dueMistakes.slice(0, 3).map(m => `
+          <div class="flex items-center justify-between p-2 rounded-lg bg-slate-900/80 border border-rose-900/40">
+            <div>
+              <span class="font-bold text-rose-300">[${m.stream.toUpperCase()}] ${escapeHtml(m.topic)}:</span>
+              <span class="text-slate-300 ml-1">${escapeHtml(m.question.substring(0, 60))}...</span>
+            </div>
+            <button onclick="markMistakeMastered('${m.id}')" class="px-2 py-0.5 rounded bg-emerald-600/30 text-emerald-300 text-[10px] hover:bg-emerald-600/50">Mastered</button>
+          </div>
+        `).join('');
+      }
+    }
+
+    /* Helper: Generate Task HTML row */
+    function createTaskItemHtml(task) {
+      const sub = appData.subjects.find(s => s.id === task.subjectId);
+      const subName = sub ? sub.name : (task.stream === 'nda' ? 'NDA Prep' : 'B.Tech Study');
+      const streamBadge = task.stream === 'nda'
+        ? `<span class="px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[10px] font-semibold">NDA</span>`
+        : `<span class="px-1.5 py-0.5 rounded bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 text-[10px] font-semibold">B.Tech</span>`;
+
+      const priorityColors = {
+        High: 'text-rose-400 bg-rose-500/10',
+        Medium: 'text-amber-400 bg-amber-500/10',
+        Low: 'text-slate-400 bg-slate-800'
+      };
+
+      return `
+        <div class="p-3 sm:p-3.5 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-700/80 transition flex items-center justify-between gap-3 ${task.completed ? 'opacity-60 bg-slate-900/50' : ''}">
+          <div class="flex items-center gap-3 min-w-0">
+            <button onclick="toggleTaskComplete('${task.id}')" class="w-6 h-6 rounded-lg border ${task.completed ? 'bg-emerald-600 border-emerald-500 text-white' : 'border-slate-700 hover:border-emerald-500'} flex items-center justify-center shrink-0 transition">
+              ${task.completed ? '✓' : ''}
+            </button>
+            <div class="min-w-0">
+              <p class="text-xs sm:text-sm font-semibold text-white truncate ${task.completed ? 'line-through text-slate-400' : ''}">
+                ${escapeHtml(task.title)}
+              </p>
+              <div class="flex flex-wrap items-center gap-1.5 mt-1 text-[10px]">
+                ${streamBadge}
+                <span class="text-slate-400 truncate max-w-[120px] sm:max-w-xs">${escapeHtml(subName)}</span>
+                <span class="px-1.5 py-0.2 rounded font-medium ${priorityColors[task.priority] || priorityColors.Medium}">${task.priority}</span>
+                <span class="text-slate-500 font-mono">⏱️ ${task.duration || 45}m</span>
+                <span class="text-slate-500 font-mono">📅 ${task.date}</span>
+              </div>
+            </div>
+          </div>
+          <div class="flex items-center gap-1 shrink-0">
+            <button onclick="openRescheduleModal('${task.id}')" class="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800" title="Reschedule Date">📅</button>
+            <button onclick="editTask('${task.id}')" class="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800" title="Edit Task">✏️</button>
+            <button onclick="deleteTask('${task.id}')" class="p-1.5 text-slate-400 hover:text-rose-400 rounded-lg hover:bg-slate-800" title="Delete Task">🗑️</button>
+          </div>
+        </div>
+      `;
+    }
+
+    function filterTasks(type) {
+      currentTaskFilter = type;
+      document.querySelectorAll('.task-filter-btn').forEach(btn => {
+        if (btn.getAttribute('data-filter') === type) {
+          btn.className = 'task-filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-600 text-white';
+        } else {
+          btn.className = 'task-filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300 hover:text-white';
+        }
+      });
+      renderTasksList();
+    }
+
+    function renderTasksList() {
+      const container = document.getElementById('fullTasksList');
+      if (!container) return;
+      const today = new Date().toISOString().split('T')[0];
+
+      let list = [...appData.tasks];
+
+      if (currentTaskFilter === 'today') {
+        list = list.filter(t => t.date === today);
+      } else if (currentTaskFilter === 'nda') {
+        list = list.filter(t => t.stream === 'nda');
+      } else if (currentTaskFilter === 'btech') {
+        list = list.filter(t => t.stream === 'btech');
+      } else if (currentTaskFilter === 'pending') {
+        list = list.filter(t => !t.completed);
+      } else if (currentTaskFilter === 'completed') {
+        list = list.filter(t => t.completed);
+      }
+
+      // Sort by incomplete first, then date ascending
+      list.sort((a, b) => {
+        if (a.completed === b.completed) {
+          return new Date(a.date) - new Date(b.date);
+        }
+        return a.completed ? 1 : -1;
+      });
+
+      if (list.length === 0) {
+        container.innerHTML = `
+          <div class="p-8 rounded-2xl bg-slate-900 border border-slate-800 text-center text-slate-400 text-xs">
+            <span class="text-3xl block mb-2">🎯</span>
+            No tasks match this filter. Use the "Add Task" button to schedule your next milestone.
+          </div>
+        `;
+      } else {
+        container.innerHTML = list.map(t => createTaskItemHtml(t)).join('');
+      }
+    }
+
+    function toggleTaskComplete(taskId) {
+      const task = appData.tasks.find(t => t.id === taskId);
+      if (!task) return;
+      task.completed = !task.completed;
+      saveData();
+      if (task.completed) {
+        playChime('success');
+        showToast('Task marked complete! 🎯', 'success');
+      }
+      renderAll();
+    }
+
+    function clearCompletedTasks() {
+      const completedCount = appData.tasks.filter(t => t.completed).length;
+      if (completedCount === 0) {
+        showToast('No completed tasks to clean', 'info');
+        return;
+      }
+      showConfirmModal({
+        title: 'Clean Completed Tasks?',
+        message: `Remove ${completedCount} finished tasks from list?`,
+        onConfirm: () => {
+          appData.tasks = appData.tasks.filter(t => !t.completed);
+          saveData();
+          showToast('Completed tasks cleaned up', 'success');
+          renderAll();
+        }
+      });
+    }
+
+    function openTaskModal(prefilledDate = null) {
+      document.getElementById('taskModalTitle').textContent = 'Create New Task';
+      document.getElementById('taskInputId').value = '';
+      document.getElementById('taskInputTitle').value = '';
+      document.getElementById('taskInputStream').value = 'nda';
+      document.getElementById('taskInputDate').value = prefilledDate || new Date().toISOString().split('T')[0];
+      document.getElementById('taskInputPriority').value = 'Medium';
+      document.getElementById('taskInputDuration').value = 45;
+      document.getElementById('taskInputCompleted').checked = false;
+
+      populateTaskSubjectOptions();
+
+      const modal = document.getElementById('modalTask');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function editTask(taskId) {
+      const task = appData.tasks.find(t => t.id === taskId);
+      if (!task) return;
+
+      document.getElementById('taskModalTitle').textContent = 'Edit Task';
+      document.getElementById('taskInputId').value = task.id;
+      document.getElementById('taskInputTitle').value = task.title;
+      document.getElementById('taskInputStream').value = task.stream;
+      document.getElementById('taskInputDate').value = task.date;
+      document.getElementById('taskInputPriority').value = task.priority || 'Medium';
+      document.getElementById('taskInputDuration').value = task.duration || 45;
+      document.getElementById('taskInputCompleted').checked = !!task.completed;
+
+      populateTaskSubjectOptions(task.subjectId);
+
+      const modal = document.getElementById('modalTask');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeTaskModal() {
+      const modal = document.getElementById('modalTask');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    function populateTaskSubjectOptions(selectedId = null) {
+      const stream = document.getElementById('taskInputStream').value;
+      const select = document.getElementById('taskInputSubject');
+      const filtered = appData.subjects.filter(s => stream === 'general' || s.stream === stream);
+
+      select.innerHTML = filtered.map(s => `
+        <option value="${s.id}" ${s.id === selectedId ? 'selected' : ''}>${escapeHtml(s.name)}</option>
+      `).join('') + `<option value="" ${!selectedId ? 'selected' : ''}>-- No Specific Subject --</option>`;
+    }
+
+    function handleTaskSubmit(e) {
+      e.preventDefault();
+      const id = document.getElementById('taskInputId').value;
+      const title = document.getElementById('taskInputTitle').value.trim();
+      const stream = document.getElementById('taskInputStream').value;
+      const subjectId = document.getElementById('taskInputSubject').value;
+      const date = document.getElementById('taskInputDate').value;
+      const priority = document.getElementById('taskInputPriority').value;
+      const duration = parseInt(document.getElementById('taskInputDuration').value) || 45;
+      const completed = document.getElementById('taskInputCompleted').checked;
+
+      if (!title || !date) return;
+
+      if (id) {
+        // Edit existing
+        const task = appData.tasks.find(t => t.id === id);
+        if (task) {
+          task.title = title;
+          task.stream = stream;
+          task.subjectId = subjectId;
+          task.date = date;
+          task.priority = priority;
+          task.duration = duration;
+          task.completed = completed;
+          showToast('Task updated successfully', 'success');
+        }
+      } else {
+        // Create new
+        const newTask = {
+          id: 'task_' + Date.now(),
+          title,
+          stream,
+          subjectId,
+          date,
+          priority,
+          duration,
+          completed
+        };
+        appData.tasks.push(newTask);
+        showToast('New task scheduled', 'success');
+      }
+
+      saveData();
+      closeTaskModal();
+      renderAll();
+    }
+
+    function deleteTask(taskId) {
+      showConfirmModal({
+        title: 'Delete Task?',
+        message: 'Are you sure you want to delete this study task?',
+        onConfirm: () => {
+          appData.tasks = appData.tasks.filter(t => t.id !== taskId);
+          saveData();
+          showToast('Task removed', 'info');
+          renderAll();
+        }
+      });
+    }
+
+    /* Reschedule Task */
+    function openRescheduleModal(taskId) {
+      const task = appData.tasks.find(t => t.id === taskId);
+      if (!task) return;
+      document.getElementById('rescheduleTaskId').value = task.id;
+      document.getElementById('rescheduleTaskTitle').textContent = task.title;
+      document.getElementById('rescheduleDateInput').value = task.date;
+
+      const modal = document.getElementById('modalReschedule');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeRescheduleModal() {
+      const modal = document.getElementById('modalReschedule');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    function saveRescheduleTask() {
+      const taskId = document.getElementById('rescheduleTaskId').value;
+      const newDate = document.getElementById('rescheduleDateInput').value;
+      if (!newDate) return;
+
+      const task = appData.tasks.find(t => t.id === taskId);
+      if (task) {
+        task.date = newDate;
+        saveData();
+        showToast(`Task rescheduled to ${newDate}`, 'success');
+        closeRescheduleModal();
+        renderAll();
+      }
+    }
+
+    function renderNdaHub() {
+      document.getElementById('ndaHubTargetScore').textContent = `${appData.profile.ndaTargetScore || 480} / 900`;
+
+      // Maths stats
+      const mathSub = appData.subjects.find(s => s.id === 'sub_nda_math') || appData.subjects.find(s => s.stream === 'nda' && s.name.toLowerCase().includes('math'));
+      const mathChapters = mathSub && mathSub.chapters ? mathSub.chapters : [];
+      const mathDone = mathChapters.filter(c => c.status === 'Completed').length;
+      const mathPct = mathChapters.length > 0 ? Math.round((mathDone / mathChapters.length) * 100) : 0;
+      document.getElementById('ndaMathProgressText').textContent = `${mathPct}% (${mathDone}/${mathChapters.length})`;
+      document.getElementById('ndaMathProgressBar').style.width = `${mathPct}%`;
+
+      const mathContainer = document.getElementById('ndaMathChaptersList');
+      if (mathChapters.length === 0) {
+        mathContainer.innerHTML = `<p class="text-xs text-slate-500 italic p-2">No Maths chapters added yet.</p>`;
+      } else {
+        mathContainer.innerHTML = mathChapters.map(c => createChapterRowHtml(mathSub.id, c)).join('');
+      }
+
+      // GAT stats
+      const gatSub = appData.subjects.find(s => s.id === 'sub_nda_gat') || appData.subjects.find(s => s.stream === 'nda' && s.name.toLowerCase().includes('gat'));
+      const gatChapters = gatSub && gatSub.chapters ? gatSub.chapters : [];
+      const gatDone = gatChapters.filter(c => c.status === 'Completed').length;
+      const gatPct = gatChapters.length > 0 ? Math.round((gatDone / gatChapters.length) * 100) : 0;
+      document.getElementById('ndaGatProgressText').textContent = `${gatPct}% (${gatDone}/${gatChapters.length})`;
+      document.getElementById('ndaGatProgressBar').style.width = `${gatPct}%`;
+
+      const gatContainer = document.getElementById('ndaGatChaptersList');
+      if (gatChapters.length === 0) {
+        gatContainer.innerHTML = `<p class="text-xs text-slate-500 italic p-2">No GAT chapters added yet.</p>`;
+      } else {
+        gatContainer.innerHTML = gatChapters.map(c => createChapterRowHtml(gatSub.id, c)).join('');
+      }
+    }
+
+    function createChapterRowHtml(subjectId, chapter) {
+      const statusColors = {
+        'Completed': 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20',
+        'In Progress': 'text-amber-400 bg-amber-500/10 border-amber-500/20',
+        'Needs Revision': 'text-rose-400 bg-rose-500/10 border-rose-500/20',
+        'Not Started': 'text-slate-400 bg-slate-800 border-slate-700'
+      };
+
+      return `
+        <div class="p-2.5 rounded-xl bg-slate-950/60 border border-slate-800/80 flex items-center justify-between gap-2">
+          <div class="min-w-0">
+            <div class="flex items-center gap-1.5">
+              <span class="text-xs font-semibold text-white truncate">${escapeHtml(chapter.title)}</span>
+              <span class="px-1.5 py-0.2 rounded text-[9px] font-semibold border ${statusColors[chapter.status] || statusColors['Not Started']}">${chapter.status}</span>
+            </div>
+            ${chapter.topics && chapter.topics.length ? `<p class="text-[10px] text-slate-400 truncate mt-0.5">${escapeHtml(chapter.topics.join(' • '))}</p>` : ''}
+          </div>
+          <div class="flex items-center gap-1 shrink-0">
+            <button onclick="quickToggleChapterStatus('${subjectId}', '${chapter.id}')" class="p-1 text-slate-400 hover:text-emerald-400 rounded text-xs" title="Cycle Status">🔄</button>
+            <button onclick="editChapter('${subjectId}', '${chapter.id}')" class="p-1 text-slate-400 hover:text-white rounded text-xs" title="Edit Chapter">✏️</button>
+            <button onclick="deleteChapter('${subjectId}', '${chapter.id}')" class="p-1 text-slate-400 hover:text-rose-400 rounded text-xs" title="Delete Chapter">🗑️</button>
+          </div>
+        </div>
+      `;
+    }
+
+    function quickToggleChapterStatus(subjectId, chapterId) {
+      const sub = appData.subjects.find(s => s.id === subjectId);
+      if (!sub) return;
+      const chapter = sub.chapters.find(c => c.id === chapterId);
+      if (!chapter) return;
+
+      const order = ['Not Started', 'In Progress', 'Completed', 'Needs Revision'];
+      const currentIndex = order.indexOf(chapter.status);
+      const nextIndex = (currentIndex + 1) % order.length;
+      chapter.status = order[nextIndex];
+
+      saveData();
+      showToast(`${chapter.title}: ${chapter.status}`, 'info');
+      renderAll();
+    }
+
+    function renderBtechHub() {
+      document.getElementById('btechHubTargetSgpa').textContent = (appData.profile.btechTargetSgpa || 8.50).toFixed(2);
+      const container = document.getElementById('btechSubjectsContainer');
+      const btechSubs = appData.subjects.filter(s => s.stream === 'btech');
+
+      if (btechSubs.length === 0) {
+        container.innerHTML = `
+          <div class="col-span-2 p-8 rounded-2xl bg-slate-900 border border-slate-800 text-center text-slate-400 text-xs">
+            <span class="text-3xl block mb-2">💻</span>
+            No B.Tech subjects added yet. Add your semester courses and lab practicals using the button above.
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = btechSubs.map(s => {
+        const chapters = s.chapters || [];
+        const completed = chapters.filter(c => c.status === 'Completed').length;
+        const pct = chapters.length > 0 ? Math.round((completed / chapters.length) * 100) : 0;
+
+        return `
+          <div class="p-5 rounded-2xl bg-slate-900 border border-slate-800 space-y-3.5">
+            <div class="flex justify-between items-start">
+              <div>
+                <span class="text-[10px] font-bold text-indigo-400 uppercase tracking-wider">${escapeHtml(s.code || 'COURSE')}</span>
+                <h4 class="text-base font-bold text-white">${escapeHtml(s.name)}</h4>
+                <span class="text-[11px] text-slate-400">Target: ${s.targetHours || 60}h prep</span>
+              </div>
+              <div class="flex items-center gap-1">
+                <button onclick="openChapterModal('${s.id}')" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-indigo-300 rounded-lg text-xs font-semibold">➕ Unit</button>
+                <button onclick="editSubject('${s.id}')" class="p-1 text-slate-400 hover:text-white rounded text-xs">✏️</button>
+                <button onclick="deleteSubject('${s.id}')" class="p-1 text-slate-400 hover:text-rose-400 rounded text-xs">🗑️</button>
+              </div>
+            </div>
+
+            <!-- Subject Progress Bar -->
+            <div>
+              <div class="flex justify-between text-xs text-slate-400 mb-1">
+                <span>Unit Progress</span>
+                <span class="font-mono text-indigo-400 font-bold">${pct}% (${completed}/${chapters.length})</span>
+              </div>
+              <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+                <div class="bg-indigo-500 h-full rounded-full transition-all" style="width: ${pct}%"></div>
+              </div>
+            </div>
+
+            <!-- Chapters list inside subject -->
+            <div class="space-y-1.5 max-h-52 overflow-y-auto pr-1">
+              ${chapters.length ? chapters.map(c => createChapterRowHtml(s.id, c)).join('') : '<p class="text-xs text-slate-500 italic">No syllabus units logged yet.</p>'}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function filterSubjectStream(stream) {
+      currentSubjectStreamFilter = stream;
+      document.querySelectorAll('.sub-stream-tab').forEach(btn => {
+        if (btn.getAttribute('data-stream') === stream) {
+          btn.className = 'sub-stream-tab px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-600 text-white';
+        } else {
+          btn.className = 'sub-stream-tab px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300 hover:text-white';
+        }
+      });
+      renderSubjectsView();
+    }
+
+    function renderSubjectsView() {
+      const container = document.getElementById('fullSubjectsList');
+      if (!container) return;
+
+      let list = [...appData.subjects];
+      if (currentSubjectStreamFilter !== 'all') {
+        list = list.filter(s => s.stream === currentSubjectStreamFilter);
+      }
+
+      if (list.length === 0) {
+        container.innerHTML = `
+          <div class="p-8 rounded-2xl bg-slate-900 border border-slate-800 text-center text-slate-400 text-xs">
+            No subjects found. Click "Add Subject" to create one.
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = list.map(sub => {
+        const streamBadge = sub.stream === 'nda'
+          ? `<span class="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-xs font-bold">🎯 NDA 2027</span>`
+          : `<span class="px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 text-xs font-bold">💻 B.Tech</span>`;
+
+        const chapters = sub.chapters || [];
+        const completed = chapters.filter(c => c.status === 'Completed').length;
+        const pct = chapters.length > 0 ? Math.round((completed / chapters.length) * 100) : 0;
+
+        return `
+          <div class="p-4 sm:p-5 rounded-2xl bg-slate-900 border border-slate-800 space-y-3">
+            <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-2">
+              <div class="flex items-center gap-2">
+                ${streamBadge}
+                <h4 class="text-base font-bold text-white">${escapeHtml(sub.name)}</h4>
+                <span class="text-xs text-slate-500 font-mono">(${escapeHtml(sub.code || 'GENERAL')})</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <button onclick="openChapterModal('${sub.id}')" class="px-3 py-1.5 bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 rounded-xl text-xs font-bold transition">
+                  ➕ Add Chapter / Unit
+                </button>
+                <button onclick="editSubject('${sub.id}')" class="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800">✏️</button>
+                <button onclick="deleteSubject('${sub.id}')" class="p-1.5 text-slate-400 hover:text-rose-400 rounded-lg hover:bg-slate-800">🗑️</button>
+              </div>
+            </div>
+
+            <!-- Subject Progress Bar -->
+            <div>
+              <div class="flex justify-between text-xs text-slate-400 mb-1">
+                <span>Completed: ${completed} of ${chapters.length} chapters</span>
+                <span class="font-mono text-emerald-400 font-bold">${pct}%</span>
+              </div>
+              <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+                <div class="bg-gradient-to-r from-emerald-500 to-teal-400 h-full rounded-full transition-all" style="width: ${pct}%"></div>
+              </div>
+            </div>
+
+            <!-- Chapter Checklist -->
+            <div class="space-y-1.5 pt-2">
+              ${chapters.length ? chapters.map(c => createChapterRowHtml(sub.id, c)).join('') : '<p class="text-xs text-slate-500 italic">No chapters created yet.</p>'}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function openSubjectModal(stream = 'nda', namePrefill = '') {
+      document.getElementById('subjectModalTitle').textContent = 'Add Subject';
+      document.getElementById('subInputId').value = '';
+      document.getElementById('subInputName').value = namePrefill;
+      document.getElementById('subInputStream').value = stream;
+      document.getElementById('subInputCode').value = '';
+      document.getElementById('subInputTargetHours').value = 60;
+
+      const modal = document.getElementById('modalSubject');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function editSubject(subjectId) {
+      const sub = appData.subjects.find(s => s.id === subjectId);
+      if (!sub) return;
+
+      document.getElementById('subjectModalTitle').textContent = 'Edit Subject';
+      document.getElementById('subInputId').value = sub.id;
+      document.getElementById('subInputName').value = sub.name;
+      document.getElementById('subInputStream').value = sub.stream;
+      document.getElementById('subInputCode').value = sub.code || '';
+      document.getElementById('subInputTargetHours').value = sub.targetHours || 60;
+
+      const modal = document.getElementById('modalSubject');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeSubjectModal() {
+      const modal = document.getElementById('modalSubject');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    function handleSubjectSubmit(e) {
+      e.preventDefault();
+      const id = document.getElementById('subInputId').value;
+      const name = document.getElementById('subInputName').value.trim();
+      const stream = document.getElementById('subInputStream').value;
+      const code = document.getElementById('subInputCode').value.trim();
+      const targetHours = parseInt(document.getElementById('subInputTargetHours').value) || 60;
+
+      if (!name) return;
+
+      if (id) {
+        const sub = appData.subjects.find(s => s.id === id);
+        if (sub) {
+          sub.name = name;
+          sub.stream = stream;
+          sub.code = code;
+          sub.targetHours = targetHours;
+          showToast('Subject updated successfully', 'success');
+        }
+      } else {
+        const newSub = {
+          id: 'sub_' + Date.now(),
+          name,
+          stream,
+          code,
+          targetHours,
+          chapters: []
+        };
+        appData.subjects.push(newSub);
+        showToast('New subject added', 'success');
+      }
+
+      saveData();
+      closeSubjectModal();
+      renderAll();
+    }
+
+    function deleteSubject(subjectId) {
+      showConfirmModal({
+        title: 'Delete Subject & Chapters?',
+        message: 'Are you sure you want to delete this subject along with all its chapters?',
+        onConfirm: () => {
+          appData.subjects = appData.subjects.filter(s => s.id !== subjectId);
+          saveData();
+          showToast('Subject deleted', 'info');
+          renderAll();
+        }
+      });
+    }
+
+    /* Chapter CRUD */
+    function openChapterModal(subjectId) {
+      document.getElementById('chapterModalTitle').textContent = 'Add Chapter / Topic';
+      document.getElementById('chapInputSubjectId').value = subjectId;
+      document.getElementById('chapInputId').value = '';
+      document.getElementById('chapInputTitle').value = '';
+      document.getElementById('chapInputStatus').value = 'Not Started';
+      document.getElementById('chapInputTopics').value = '';
+
+      const modal = document.getElementById('modalChapter');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function editChapter(subjectId, chapterId) {
+      const sub = appData.subjects.find(s => s.id === subjectId);
+      if (!sub) return;
+      const chap = sub.chapters.find(c => c.id === chapterId);
+      if (!chap) return;
+
+      document.getElementById('chapterModalTitle').textContent = 'Edit Chapter';
+      document.getElementById('chapInputSubjectId').value = subjectId;
+      document.getElementById('chapInputId').value = chap.id;
+      document.getElementById('chapInputTitle').value = chap.title;
+      document.getElementById('chapInputStatus').value = chap.status;
+      document.getElementById('chapInputTopics').value = chap.topics ? chap.topics.join(', ') : '';
+
+      const modal = document.getElementById('modalChapter');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeChapterModal() {
+      const modal = document.getElementById('modalChapter');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    function handleChapterSubmit(e) {
+      e.preventDefault();
+      const subjectId = document.getElementById('chapInputSubjectId').value;
+      const chapterId = document.getElementById('chapInputId').value;
+      const title = document.getElementById('chapInputTitle').value.trim();
+      const status = document.getElementById('chapInputStatus').value;
+      const rawTopics = document.getElementById('chapInputTopics').value;
+      const topics = rawTopics.split(',').map(t => t.trim()).filter(Boolean);
+
+      if (!title) return;
+
+      const sub = appData.subjects.find(s => s.id === subjectId);
+      if (!sub) return;
+      if (!sub.chapters) sub.chapters = [];
+
+      if (chapterId) {
+        const chap = sub.chapters.find(c => c.id === chapterId);
+        if (chap) {
+          chap.title = title;
+          chap.status = status;
+          chap.topics = topics;
+          showToast('Chapter updated', 'success');
+        }
+      } else {
+        sub.chapters.push({
+          id: 'chap_' + Date.now(),
+          title,
+          status,
+          topics
+        });
+        showToast('Chapter added to syllabus', 'success');
+      }
+
+      saveData();
+      closeChapterModal();
+      renderAll();
+    }
+
+    function deleteChapter(subjectId, chapterId) {
+      showConfirmModal({
+        title: 'Delete Chapter?',
+        message: 'Remove this chapter from the syllabus?',
+        onConfirm: () => {
+          const sub = appData.subjects.find(s => s.id === subjectId);
+          if (sub && sub.chapters) {
+            sub.chapters = sub.chapters.filter(c => c.id !== chapterId);
+            saveData();
+            showToast('Chapter removed', 'info');
+            renderAll();
+          }
+        }
+      });
+    }
+
+    function renderTimerView() {
+      // Populate subject selector
+      const select = document.getElementById('timerSubjectSelect');
+      if (select && select.children.length === 0) {
+        select.innerHTML = appData.subjects.map(s => `
+          <option value="${s.id}">[${s.stream.toUpperCase()}] ${escapeHtml(s.name)}</option>
+        `).join('') + `<option value="">General Prep</option>`;
+      }
+
+      // Render today's study sessions
+      const today = new Date().toISOString().split('T')[0];
+      const todayLogs = appData.studyLogs.filter(l => l.date === today);
+      const totalMinutes = todayLogs.reduce((acc, l) => acc + (l.minutes || 0), 0);
+      document.getElementById('timerTotalTodayLogged').textContent = `${(totalMinutes / 60).toFixed(1)} Hours Total`;
+
+      const container = document.getElementById('timerSessionsList');
+      if (todayLogs.length === 0) {
+        container.innerHTML = `<p class="text-xs text-slate-500 italic">No study sessions recorded today yet.</p>`;
+      } else {
+        container.innerHTML = todayLogs.map(l => {
+          const sub = appData.subjects.find(s => s.id === l.subjectId);
+          const subName = sub ? sub.name : 'General Focus';
+          return `
+            <div class="p-2.5 rounded-xl bg-slate-950/60 border border-slate-800 flex items-center justify-between text-xs">
+              <div>
+                <span class="font-bold text-white">${escapeHtml(subName)}</span>
+                ${l.notes ? `<p class="text-[10px] text-slate-400 mt-0.5">${escapeHtml(l.notes)}</p>` : ''}
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="font-mono text-emerald-400 font-bold">${l.minutes} mins</span>
+                <button onclick="deleteStudyLog('${l.id}')" class="text-slate-500 hover:text-rose-400 p-1">🗑️</button>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+    }
+
+    function setTimerMode(mode, minutes) {
+      if (timerIsRunning) {
+        showConfirmModal({
+          title: 'Switch Mode?',
+          message: 'An active session is running. Do you want to stop and switch timer mode?',
+          onConfirm: () => {
+            pauseTimer();
+            applyTimerMode(mode, minutes);
+          }
+        });
+        return;
+      }
+      applyTimerMode(mode, minutes);
+    }
+
+    function applyTimerMode(mode, minutes) {
+      timerMode = mode;
+      document.querySelectorAll('.timer-mode-btn').forEach(btn => {
+        if (btn.getAttribute('data-mode') === mode) {
+          btn.className = 'timer-mode-btn px-3.5 py-1.5 rounded-lg text-xs font-bold text-white bg-emerald-600';
+        } else {
+          btn.className = 'timer-mode-btn px-3.5 py-1.5 rounded-lg text-xs font-bold text-slate-300 hover:text-white';
+        }
+      });
+
+      if (mode === 'stopwatch') {
+        timerElapsedForStopwatch = 0;
+        updateTimerDisplay(0);
+        document.getElementById('timerStatusSub').textContent = 'Stopwatch mode: Counting up your focus time';
+      } else {
+        timerInitialSeconds = minutes * 60;
+        timerSecondsLeft = timerInitialSeconds;
+        updateTimerDisplay(timerSecondsLeft);
+        document.getElementById('timerStatusSub').textContent = 'Stay locked in. No distractions.';
+      }
+    }
+
+    function updateTimerDisplay(sec) {
+      const minutes = Math.floor(sec / 60);
+      const seconds = sec % 60;
+      const formatted = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+      document.getElementById('timerDisplay').textContent = formatted;
+    }
+
+    function toggleTimer() {
+      if (timerIsRunning) {
+        pauseTimer();
+      } else {
+        startTimer();
+      }
+    }
+
+    function startTimer() {
+      timerIsRunning = true;
+      document.getElementById('timerToggleBtn').textContent = '⏸ Pause Session';
+      document.getElementById('timerToggleBtn').className = 'px-8 py-3.5 bg-amber-600 hover:bg-amber-500 text-white text-base font-bold rounded-2xl shadow-lg shadow-amber-600/30 transition transform active:scale-95 touch-target';
+      document.getElementById('sideTimerRunningDot').classList.remove('hidden');
+
+      timerInterval = setInterval(() => {
+        if (timerMode === 'stopwatch') {
+          timerElapsedForStopwatch++;
+          updateTimerDisplay(timerElapsedForStopwatch);
+        } else {
+          if (timerSecondsLeft > 0) {
+            timerSecondsLeft--;
+            updateTimerDisplay(timerSecondsLeft);
+          } else {
+            // Timer Finished
+            pauseTimer();
+            playChime('bell');
+            autoLogCompletedTimer();
+          }
+        }
+      }, 1000);
+    }
+
+    function pauseTimer() {
+      timerIsRunning = false;
+      clearInterval(timerInterval);
+      document.getElementById('timerToggleBtn').textContent = '▶ Resume Session';
+      document.getElementById('timerToggleBtn').className = 'px-8 py-3.5 bg-emerald-600 hover:bg-emerald-500 text-white text-base font-bold rounded-2xl shadow-lg shadow-emerald-600/30 transition transform active:scale-95 touch-target';
+      document.getElementById('sideTimerRunningDot').classList.add('hidden');
+    }
+
+    function resetTimer() {
+      pauseTimer();
+      if (timerMode === 'stopwatch') {
+        timerElapsedForStopwatch = 0;
+        updateTimerDisplay(0);
+      } else {
+        timerSecondsLeft = timerInitialSeconds;
+        updateTimerDisplay(timerSecondsLeft);
+      }
+      document.getElementById('timerToggleBtn').textContent = '▶ Start Session';
+    }
+
+    function autoLogCompletedTimer() {
+      const mins = Math.round(timerInitialSeconds / 60);
+      const subId = document.getElementById('timerSubjectSelect').value;
+      const sub = appData.subjects.find(s => s.id === subId);
+      const stream = sub ? sub.stream : 'nda';
+
+      appData.studyLogs.push({
+        id: 'log_' + Date.now(),
+        date: new Date().toISOString().split('T')[0],
+        minutes: mins,
+        stream,
+        subjectId: subId,
+        notes: `Completed ${mins}m ${timerMode} focus session`
+      });
+
+      saveData();
+      showToast(`🎉 Focus session completed! Added ${mins} mins to study log.`, 'success');
+      renderAll();
+    }
+
+    function finishSessionManual() {
+      let loggedMinutes = 0;
+      if (timerMode === 'stopwatch') {
+        loggedMinutes = Math.round(timerElapsedForStopwatch / 60);
+      } else {
+        const spentSeconds = timerInitialSeconds - timerSecondsLeft;
+        loggedMinutes = Math.round(spentSeconds / 60);
+      }
+
+      if (loggedMinutes < 1) {
+        showToast('Study session is less than 1 minute. Keep going!', 'info');
+        return;
+      }
+
+      const subId = document.getElementById('timerSubjectSelect').value;
+      const sub = appData.subjects.find(s => s.id === subId);
+      const stream = sub ? sub.stream : 'nda';
+
+      appData.studyLogs.push({
+        id: 'log_' + Date.now(),
+        date: new Date().toISOString().split('T')[0],
+        minutes: loggedMinutes,
+        stream,
+        subjectId: subId,
+        notes: 'Manual recorded focus session'
+      });
+
+      saveData();
+      resetTimer();
+      showToast(`Logged ${loggedMinutes} minutes!`, 'success');
+      renderAll();
+    }
+
+    /* Manual Log Hours Modal */
+    function openLogHoursModal() {
+      const select = document.getElementById('logHoursSubjectSelect');
+      select.innerHTML = appData.subjects.map(s => `
+        <option value="${s.id}">[${s.stream.toUpperCase()}] ${escapeHtml(s.name)}</option>
+      `).join('') + `<option value="">General Prep</option>`;
+
+      const modal = document.getElementById('modalLogHours');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeLogHoursModal() {
+      const modal = document.getElementById('modalLogHours');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    function handleManualLogHours(e) {
+      e.preventDefault();
+      const subjectId = document.getElementById('logHoursSubjectSelect').value;
+      const minutes = parseInt(document.getElementById('logHoursMinutes').value) || 30;
+      const notes = document.getElementById('logHoursNotes').value.trim();
+
+      const sub = appData.subjects.find(s => s.id === subjectId);
+      const stream = sub ? sub.stream : 'nda';
+
+      appData.studyLogs.push({
+        id: 'log_' + Date.now(),
+        date: new Date().toISOString().split('T')[0],
+        minutes,
+        stream,
+        subjectId,
+        notes: notes || 'Offline self-study'
+      });
+
+      saveData();
+      closeLogHoursModal();
+      showToast(`Recorded ${minutes} mins study log!`, 'success');
+      renderAll();
+    }
+
+    function deleteStudyLog(logId) {
+      showConfirmModal({
+        title: 'Delete Study Log?',
+        message: 'Remove this session from your logged hours?',
+        onConfirm: () => {
+          appData.studyLogs = appData.studyLogs.filter(l => l.id !== logId);
+          saveData();
+          showToast('Session removed', 'info');
+          renderAll();
+        }
+      });
+    }
+
+    function renderMocksView() {
+      const mocks = appData.mockTests || [];
+      const ndaMocks = mocks.filter(m => m.stream === 'nda');
+      const btechMocks = mocks.filter(m => m.stream === 'btech');
+
+      // NDA Average
+      if (ndaMocks.length > 0) {
+        const sum = ndaMocks.reduce((acc, m) => acc + (m.score || 0), 0);
+        const avg = Math.round(sum / ndaMocks.length);
+        document.getElementById('mockAvgNda').textContent = `${avg} / 900`;
+      } else {
+        document.getElementById('mockAvgNda').textContent = '-- / 900';
+      }
+      document.getElementById('mockCountNda').textContent = `${ndaMocks.length} Tests Logged`;
+
+      // B.Tech Average %
+      if (btechMocks.length > 0) {
+        const sumPct = btechMocks.reduce((acc, m) => acc + (m.score / (m.maxScore || 100)) * 100, 0);
+        const avgPct = Math.round(sumPct / btechMocks.length);
+        document.getElementById('mockAvgBtech').textContent = `${avgPct}%`;
+      } else {
+        document.getElementById('mockAvgBtech').textContent = '--%';
+      }
+      document.getElementById('mockCountBtech').textContent = `${btechMocks.length} Tests Logged`;
+
+      document.getElementById('mockTotalCount').textContent = mocks.length;
+
+      // Table body
+      const tbody = document.getElementById('mocksTableBody');
+      if (mocks.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center text-slate-500 italic">No mock tests recorded yet. Click "Log Mock Test" to get started.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = mocks.map(m => {
+        const pct = Math.round((m.score / (m.maxScore || 100)) * 100);
+        const badge = m.stream === 'nda'
+          ? `<span class="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 font-bold border border-emerald-500/20">NDA</span>`
+          : `<span class="px-2 py-0.5 rounded bg-indigo-500/10 text-indigo-400 font-bold border border-indigo-500/20">B.Tech</span>`;
+
+        return `
+          <tr class="hover:bg-slate-850/50 transition">
+            <td class="p-3">${badge}</td>
+            <td class="p-3 font-semibold text-white">${escapeHtml(m.title)}</td>
+            <td class="p-3 text-slate-400 font-mono">${m.date}</td>
+            <td class="p-3 font-mono font-bold text-white">${m.score} / ${m.maxScore}</td>
+            <td class="p-3 font-mono font-bold ${pct >= 60 ? 'text-emerald-400' : (pct >= 40 ? 'text-amber-400' : 'text-rose-400')}">${pct}%</td>
+            <td class="p-3 text-slate-400 max-w-xs truncate">${escapeHtml(m.notes || '--')}</td>
+            <td class="p-3 text-right whitespace-nowrap">
+              <button onclick="editMock('${m.id}')" class="p-1 text-slate-400 hover:text-white mr-1">✏️</button>
+              <button onclick="deleteMock('${m.id}')" class="p-1 text-slate-400 hover:text-rose-400">🗑️</button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function openMockModal() {
+      document.getElementById('mockModalTitle').textContent = 'Log Mock Test';
+      document.getElementById('mockInputId').value = '';
+      document.getElementById('mockInputTitle').value = '';
+      document.getElementById('mockInputStream').value = 'nda';
+      document.getElementById('mockInputDate').value = new Date().toISOString().split('T')[0];
+      document.getElementById('mockInputScore').value = '';
+      document.getElementById('mockInputMaxScore').value = 300;
+      document.getElementById('mockInputNotes').value = '';
+
+      const modal = document.getElementById('modalMock');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function editMock(mockId) {
+      const mock = appData.mockTests.find(m => m.id === mockId);
+      if (!mock) return;
+
+      document.getElementById('mockModalTitle').textContent = 'Edit Mock Test';
+      document.getElementById('mockInputId').value = mock.id;
+      document.getElementById('mockInputTitle').value = mock.title;
+      document.getElementById('mockInputStream').value = mock.stream;
+      document.getElementById('mockInputDate').value = mock.date;
+      document.getElementById('mockInputScore').value = mock.score;
+      document.getElementById('mockInputMaxScore').value = mock.maxScore;
+      document.getElementById('mockInputNotes').value = mock.notes || '';
+
+      const modal = document.getElementById('modalMock');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeMockModal() {
+      const modal = document.getElementById('modalMock');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    function handleMockSubmit(e) {
+      e.preventDefault();
+      const id = document.getElementById('mockInputId').value;
+      const title = document.getElementById('mockInputTitle').value.trim();
+      const stream = document.getElementById('mockInputStream').value;
+      const date = document.getElementById('mockInputDate').value;
+      const score = parseFloat(document.getElementById('mockInputScore').value) || 0;
+      const maxScore = parseFloat(document.getElementById('mockInputMaxScore').value) || 100;
+      const notes = document.getElementById('mockInputNotes').value.trim();
+
+      if (!title || !date) return;
+
+      if (id) {
+        const mock = appData.mockTests.find(m => m.id === id);
+        if (mock) {
+          mock.title = title;
+          mock.stream = stream;
+          mock.date = date;
+          mock.score = score;
+          mock.maxScore = maxScore;
+          mock.notes = notes;
+          showToast('Mock test updated', 'success');
+        }
+      } else {
+        appData.mockTests.push({
+          id: 'mock_' + Date.now(),
+          title,
+          stream,
+          date,
+          score,
+          maxScore,
+          notes
+        });
+        showToast('Mock test recorded', 'success');
+      }
+
+      saveData();
+      closeMockModal();
+      renderAll();
+    }
+
+    function deleteMock(mockId) {
+      showConfirmModal({
+        title: 'Delete Mock Test?',
+        message: 'Remove this mock result from tracking?',
+        onConfirm: () => {
+          appData.mockTests = appData.mockTests.filter(m => m.id !== mockId);
+          saveData();
+          showToast('Mock test removed', 'info');
+          renderAll();
+        }
+      });
+    }
+
+    function renderPyqsView() {
+      const pyqs = appData.pyqs || [];
+      const totalQuestions = pyqs.reduce((acc, p) => acc + (p.totalQ || 0), 0);
+      const solvedQuestions = pyqs.reduce((acc, p) => acc + (p.solvedQ || 0), 0);
+      const correctQuestions = pyqs.reduce((acc, p) => acc + (p.correctQ || 0), 0);
+      const accuracy = solvedQuestions > 0 ? Math.round((correctQuestions / solvedQuestions) * 100) : 0;
+      const mastered = pyqs.filter(p => p.status === 'Mastered').length;
+
+      document.getElementById('pyqTotalQuestions').textContent = `${solvedQuestions} / ${totalQuestions} Qs`;
+      document.getElementById('pyqOverallAccuracy').textContent = `${accuracy}%`;
+      document.getElementById('pyqMasteredCount').textContent = mastered;
+
+      const tbody = document.getElementById('pyqsTableBody');
+      if (pyqs.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center text-slate-500 italic">No PYQs tracked yet.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = pyqs.map(p => {
+        const acc = p.solvedQ > 0 ? Math.round((p.correctQ / p.solvedQ) * 100) : 0;
+        const statusColors = {
+          'Mastered': 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20',
+          'Analyzed': 'text-amber-400 bg-amber-500/10 border-amber-500/20',
+          'Rough Attempt': 'text-rose-400 bg-rose-500/10 border-rose-500/20'
+        };
+
+        return `
+          <tr class="hover:bg-slate-850/50 transition">
+            <td class="p-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold ${p.stream === 'nda' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-indigo-500/10 text-indigo-400'}">${p.stream.toUpperCase()}</span></td>
+            <td class="p-3 font-semibold text-white">${escapeHtml(p.year)}</td>
+            <td class="p-3 text-slate-300">${escapeHtml(p.topic)}</td>
+            <td class="p-3 font-mono">${p.solvedQ} / ${p.totalQ}</td>
+            <td class="p-3 font-mono font-bold ${acc >= 80 ? 'text-emerald-400' : (acc >= 60 ? 'text-amber-400' : 'text-rose-400')}">${acc}% (${p.correctQ} correct)</td>
+            <td class="p-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold border ${statusColors[p.status] || statusColors.Analyzed}">${p.status}</span></td>
+            <td class="p-3 text-right whitespace-nowrap">
+              <button onclick="editPyq('${p.id}')" class="p-1 text-slate-400 hover:text-white mr-1">✏️</button>
+              <button onclick="deletePyq('${p.id}')" class="p-1 text-slate-400 hover:text-rose-400">🗑️</button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function openPyqModal() {
+      document.getElementById('pyqModalTitle').textContent = 'Log PYQ Practice';
+      document.getElementById('pyqInputId').value = '';
+      document.getElementById('pyqInputStream').value = 'nda';
+      document.getElementById('pyqInputYear').value = '';
+      document.getElementById('pyqInputTopic').value = '';
+      document.getElementById('pyqInputTotalQ').value = 30;
+      document.getElementById('pyqInputSolvedQ').value = 25;
+      document.getElementById('pyqInputCorrectQ').value = 20;
+      document.getElementById('pyqInputStatus').value = 'Analyzed';
+
+      const modal = document.getElementById('modalPyq');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function editPyq(pyqId) {
+      const p = appData.pyqs.find(item => item.id === pyqId);
+      if (!p) return;
+
+      document.getElementById('pyqModalTitle').textContent = 'Edit PYQ Practice';
+      document.getElementById('pyqInputId').value = p.id;
+      document.getElementById('pyqInputStream').value = p.stream;
+      document.getElementById('pyqInputYear').value = p.year;
+      document.getElementById('pyqInputTopic').value = p.topic;
+      document.getElementById('pyqInputTotalQ').value = p.totalQ;
+      document.getElementById('pyqInputSolvedQ').value = p.solvedQ;
+      document.getElementById('pyqInputCorrectQ').value = p.correctQ;
+      document.getElementById('pyqInputStatus').value = p.status;
+
+      const modal = document.getElementById('modalPyq');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closePyqModal() {
+      const modal = document.getElementById('modalPyq');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    function handlePyqSubmit(e) {
+      e.preventDefault();
+      const id = document.getElementById('pyqInputId').value;
+      const stream = document.getElementById('pyqInputStream').value;
+      const year = document.getElementById('pyqInputYear').value.trim();
+      const topic = document.getElementById('pyqInputTopic').value.trim();
+      const totalQ = parseInt(document.getElementById('pyqInputTotalQ').value) || 1;
+      const solvedQ = parseInt(document.getElementById('pyqInputSolvedQ').value) || 0;
+      const correctQ = parseInt(document.getElementById('pyqInputCorrectQ').value) || 0;
+      const status = document.getElementById('pyqInputStatus').value;
+
+      if (!year || !topic) return;
+
+      if (id) {
+        const p = appData.pyqs.find(item => item.id === id);
+        if (p) {
+          p.stream = stream;
+          p.year = year;
+          p.topic = topic;
+          p.totalQ = totalQ;
+          p.solvedQ = solvedQ;
+          p.correctQ = correctQ;
+          p.status = status;
+          showToast('PYQ entry updated', 'success');
+        }
+      } else {
+        appData.pyqs.push({
+          id: 'pyq_' + Date.now(),
+          stream,
+          year,
+          topic,
+          totalQ,
+          solvedQ,
+          correctQ,
+          status
+        });
+        showToast('PYQ practice logged', 'success');
+      }
+
+      saveData();
+      closePyqModal();
+      renderAll();
+    }
+
+    function deletePyq(pyqId) {
+      showConfirmModal({
+        title: 'Delete PYQ Entry?',
+        message: 'Remove this previous year question practice log?',
+        onConfirm: () => {
+          appData.pyqs = appData.pyqs.filter(p => p.id !== pyqId);
+          saveData();
+          showToast('PYQ log removed', 'info');
+          renderAll();
+        }
+      });
+    }
+
+    function filterMistakes(type) {
+      currentMistakeFilter = type;
+      document.querySelectorAll('.mistake-filter-btn').forEach(btn => {
+        if (btn.getAttribute('data-filter') === type) {
+          btn.className = 'mistake-filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-rose-600 text-white';
+        } else {
+          btn.className = 'mistake-filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300';
+        }
+      });
+      renderMistakesView();
+    }
+
+    function renderMistakesView() {
+      const container = document.getElementById('mistakesCardsContainer');
+      let list = [...appData.mistakes];
+
+      if (currentMistakeFilter === 'pending') {
+        list = list.filter(m => !m.mastered);
+      } else if (currentMistakeFilter === 'mastered') {
+        list = list.filter(m => m.mastered);
+      }
+
+      if (list.length === 0) {
+        container.innerHTML = `
+          <div class="col-span-2 p-8 rounded-2xl bg-slate-900 border border-slate-800 text-center text-slate-400 text-xs">
+            <span class="text-3xl block mb-2">🛡️</span>
+            No mistake records found under this filter. Keeping track of errors transforms weak spots into your greatest strengths!
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = list.map(m => {
+        const streamBadge = m.stream === 'nda'
+          ? `<span class="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 text-[10px] font-bold border border-emerald-500/20">NDA</span>`
+          : `<span class="px-2 py-0.5 rounded bg-indigo-500/10 text-indigo-400 text-[10px] font-bold border border-indigo-500/20">B.Tech</span>`;
+
+        const typeBadge = `<span class="px-2 py-0.5 rounded bg-rose-500/10 text-rose-300 text-[10px] font-bold border border-rose-500/20">${escapeHtml(m.type || 'Error')}</span>`;
+
+        return `
+          <div class="p-5 rounded-2xl bg-slate-900 border ${m.mastered ? 'border-emerald-800/40 bg-slate-900/60' : 'border-rose-900/40'} space-y-3 flex flex-col justify-between">
+            <div class="space-y-2">
+              <div class="flex justify-between items-center">
+                <div class="flex items-center gap-1.5">
+                  ${streamBadge}
+                  ${typeBadge}
+                </div>
+                <span class="text-[10px] font-mono ${m.mastered ? 'text-emerald-400 font-bold' : 'text-slate-400'}">
+                  ${m.mastered ? '✅ Mastered' : `Due: ${m.nextRevisionDate}`}
+                </span>
+              </div>
+
+              <h4 class="text-sm font-bold text-white">${escapeHtml(m.topic)}</h4>
+
+              <div class="p-2.5 rounded-xl bg-slate-950 border border-slate-800/80 text-xs text-rose-300">
+                <span class="font-bold block text-[10px] text-rose-400 uppercase tracking-wider mb-0.5">Where I Slipped:</span>
+                ${escapeHtml(m.question)}
+              </div>
+
+              <div class="p-2.5 rounded-xl bg-emerald-950/20 border border-emerald-900/30 text-xs text-emerald-300">
+                <span class="font-bold block text-[10px] text-emerald-400 uppercase tracking-wider mb-0.5">Key Learning / Correction:</span>
+                ${escapeHtml(m.correction)}
+              </div>
+            </div>
+
+            <div class="pt-3 border-t border-slate-800 flex justify-between items-center text-xs">
+              <button onclick="markMistakeMastered('${m.id}')" class="px-3 py-1.5 rounded-xl text-xs font-semibold ${m.mastered ? 'bg-slate-800 text-slate-300' : 'bg-emerald-600 hover:bg-emerald-500 text-white'} transition">
+                ${m.mastered ? 'Mark Unmastered' : '✓ Mark Mastered'}
+              </button>
+              <div class="flex items-center gap-1">
+                <button onclick="editMistake('${m.id}')" class="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800">✏️</button>
+                <button onclick="deleteMistake('${m.id}')" class="p-1.5 text-slate-400 hover:text-rose-400 rounded-lg hover:bg-slate-800">🗑️</button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function markMistakeMastered(id) {
+      const m = appData.mistakes.find(item => item.id === id);
+      if (!m) return;
+      m.mastered = !m.mastered;
+      saveData();
+      if (m.mastered) playChime('success');
+      showToast(m.mastered ? 'Concept marked Mastered! 🎉' : 'Concept marked for revision', 'info');
+      renderAll();
+    }
+
+    function openMistakeModal() {
+      document.getElementById('mistakeModalTitle').textContent = 'Record Mistake for Spaced Revision';
+      document.getElementById('misInputId').value = '';
+      document.getElementById('misInputStream').value = 'nda';
+      document.getElementById('misInputType').value = 'Conceptual';
+      document.getElementById('misInputTopic').value = '';
+      document.getElementById('misInputQuestion').value = '';
+      document.getElementById('misInputCorrection').value = '';
+      document.getElementById('misInputDate').value = new Date().toISOString().split('T')[0];
+      document.getElementById('misInputMastered').checked = false;
+
+      const modal = document.getElementById('modalMistake');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function editMistake(id) {
+      const m = appData.mistakes.find(item => item.id === id);
+      if (!m) return;
+
+      document.getElementById('mistakeModalTitle').textContent = 'Edit Mistake Record';
+      document.getElementById('misInputId').value = m.id;
+      document.getElementById('misInputStream').value = m.stream;
+      document.getElementById('misInputType').value = m.type;
+      document.getElementById('misInputTopic').value = m.topic;
+      document.getElementById('misInputQuestion').value = m.question;
+      document.getElementById('misInputCorrection').value = m.correction;
+      document.getElementById('misInputDate').value = m.nextRevisionDate;
+      document.getElementById('misInputMastered').checked = !!m.mastered;
+
+      const modal = document.getElementById('modalMistake');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeMistakeModal() {
+      const modal = document.getElementById('modalMistake');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    function handleMistakeSubmit(e) {
+      e.preventDefault();
+      const id = document.getElementById('misInputId').value;
+      const stream = document.getElementById('misInputStream').value;
+      const type = document.getElementById('misInputType').value;
+      const topic = document.getElementById('misInputTopic').value.trim();
+      const question = document.getElementById('misInputQuestion').value.trim();
+      const correction = document.getElementById('misInputCorrection').value.trim();
+      const nextRevisionDate = document.getElementById('misInputDate').value;
+      const mastered = document.getElementById('misInputMastered').checked;
+
+      if (!topic || !question || !correction) return;
+
+      if (id) {
+        const m = appData.mistakes.find(item => item.id === id);
+        if (m) {
+          m.stream = stream;
+          m.type = type;
+          m.topic = topic;
+          m.question = question;
+          m.correction = correction;
+          m.nextRevisionDate = nextRevisionDate;
+          m.mastered = mastered;
+          showToast('Mistake record updated', 'success');
+        }
+      } else {
+        appData.mistakes.push({
+          id: 'mis_' + Date.now(),
+          stream,
+          type,
+          topic,
+          question,
+          correction,
+          nextRevisionDate,
+          mastered
+        });
+        showToast('Mistake saved to revision notebook', 'success');
+      }
+
+      saveData();
+      closeMistakeModal();
+      renderAll();
+    }
+
+    function deleteMistake(id) {
+      showConfirmModal({
+        title: 'Delete Mistake Entry?',
+        message: 'Remove this concept from your revision book?',
+        onConfirm: () => {
+          appData.mistakes = appData.mistakes.filter(m => m.id !== id);
+          saveData();
+          showToast('Mistake removed', 'info');
+          renderAll();
+        }
+      });
+    }
+
+    function renderCalendarView() {
+      const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+      document.getElementById('calendarMonthTitle').textContent = `${monthNames[calCurrentMonth]} ${calCurrentYear}`;
+      document.getElementById('calendarSelectedDateTitle').textContent = calSelectedDate;
+
+      const firstDayOfMonth = new Date(calCurrentYear, calCurrentMonth, 1).getDay();
+      const daysInMonth = new Date(calCurrentYear, calCurrentMonth + 1, 0).getDate();
+      const daysInPrevMonth = new Date(calCurrentYear, calCurrentMonth, 0).getDate();
+
+      const grid = document.getElementById('calendarDaysGrid');
+      grid.innerHTML = '';
+
+      // Previous month filler days
+      for (let i = firstDayOfMonth - 1; i >= 0; i--) {
+        const d = daysInPrevMonth - i;
+        const cell = document.createElement('div');
+        cell.className = 'p-2 rounded-xl text-center text-slate-600 text-xs bg-slate-900/30';
+        cell.textContent = d;
+        grid.appendChild(cell);
+      }
+
+      const todayStr = new Date().toISOString().split('T')[0];
+
+      // Current month days
+      for (let day = 1; day <= daysInMonth; day++) {
+        const monthPad = String(calCurrentMonth + 1).padStart(2, '0');
+        const dayPad = String(day).padStart(2, '0');
+        const dateKey = `${calCurrentYear}-${monthPad}-${dayPad}`;
+
+        const isToday = dateKey === todayStr;
+        const isSelected = dateKey === calSelectedDate;
+
+        // Check if there are tasks, mocks, or revisions on this day
+        const dayTasks = appData.tasks.filter(t => t.date === dateKey);
+        const dayMocks = appData.mockTests.filter(m => m.date === dateKey);
+        const dayMistakes = appData.mistakes.filter(m => m.nextRevisionDate === dateKey);
+
+        const hasItems = dayTasks.length > 0 || dayMocks.length > 0 || dayMistakes.length > 0;
+
+        const cell = document.createElement('div');
+        cell.className = `p-2 rounded-xl text-center text-xs cursor-pointer transition select-none flex flex-col items-center justify-between min-h-[50px] border ${
+          isSelected ? 'bg-emerald-600/30 border-emerald-500 text-white font-bold' : (isToday ? 'bg-slate-850 border-amber-500/50 text-amber-300 font-bold' : 'bg-slate-900/80 border-slate-800 hover:border-slate-700 text-slate-300')
+        }`;
+        
+        let indicatorDots = '';
+        if (dayTasks.length > 0) indicatorDots += `<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>`;
+        if (dayMocks.length > 0) indicatorDots += `<span class="w-1.5 h-1.5 rounded-full bg-indigo-500"></span>`;
+        if (dayMistakes.length > 0) indicatorDots += `<span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>`;
+
+        cell.innerHTML = `
+          <span>${day}</span>
+          <div class="flex items-center gap-1 mt-1">
+            ${indicatorDots}
+          </div>
+        `;
+
+        cell.onclick = () => {
+          calSelectedDate = dateKey;
+          renderCalendarView();
+        };
+
+        grid.appendChild(cell);
+      }
+
+      // Render Selected Date Items Inspector
+      renderCalendarSelectedItems();
+    }
+
+    function changeCalendarMonth(delta) {
+      calCurrentMonth += delta;
+      if (calCurrentMonth > 11) {
+        calCurrentMonth = 0;
+        calCurrentYear++;
+      } else if (calCurrentMonth < 0) {
+        calCurrentMonth = 11;
+        calCurrentYear--;
+      }
+      renderCalendarView();
+    }
+
+    function renderCalendarSelectedItems() {
+      const container = document.getElementById('calendarDayItemsList');
+      const dayTasks = appData.tasks.filter(t => t.date === calSelectedDate);
+      const dayMocks = appData.mockTests.filter(m => m.date === calSelectedDate);
+      const dayMistakes = appData.mistakes.filter(m => m.nextRevisionDate === calSelectedDate);
+
+      let html = '';
+
+      if (dayTasks.length > 0) {
+        html += `<h5 class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Tasks (${dayTasks.length})</h5>`;
+        html += dayTasks.map(t => createTaskItemHtml(t)).join('');
+      }
+
+      if (dayMocks.length > 0) {
+        html += `<h5 class="text-[10px] font-bold text-indigo-400 uppercase tracking-wider mt-3 mb-1">Mocks Attempted (${dayMocks.length})</h5>`;
+        html += dayMocks.map(m => `
+          <div class="p-2.5 rounded-xl bg-slate-900 border border-indigo-900/40 flex justify-between items-center text-xs">
+            <div>
+              <span class="font-bold text-white">[${m.stream.toUpperCase()}] ${escapeHtml(m.title)}</span>
+              <p class="text-[10px] text-slate-400">${escapeHtml(m.notes || '')}</p>
+            </div>
+            <span class="font-mono text-indigo-400 font-bold">${m.score}/${m.maxScore}</span>
+          </div>
+        `).join('');
+      }
+
+      if (dayMistakes.length > 0) {
+        html += `<h5 class="text-[10px] font-bold text-rose-400 uppercase tracking-wider mt-3 mb-1">Revisions Due (${dayMistakes.length})</h5>`;
+        html += dayMistakes.map(m => `
+          <div class="p-2.5 rounded-xl bg-slate-900 border border-rose-900/40 flex justify-between items-center text-xs">
+            <div>
+              <span class="font-bold text-rose-300">${escapeHtml(m.topic)}</span>
+              <p class="text-[10px] text-slate-400">${escapeHtml(m.question.substring(0, 50))}...</p>
+            </div>
+            <button onclick="markMistakeMastered('${m.id}')" class="px-2 py-0.5 rounded bg-emerald-600/30 text-emerald-300 text-[10px]">Master</button>
+          </div>
+        `).join('');
+      }
+
+      if (!html) {
+        container.innerHTML = `<p class="text-xs text-slate-500 italic">No scheduled tasks or events on this date.</p>`;
+      } else {
+        container.innerHTML = html;
+      }
+    }
+
+    function openTaskForSelectedCalendarDate() {
+      openTaskModal(calSelectedDate);
+    }
+
+    function renderAnalyticsView() {
+      drawWeeklyHoursChart();
+      drawStreamShareChart();
+      drawMockTrendChart();
+    }
+
+    function drawWeeklyHoursChart() {
+      const canvas = document.getElementById('weeklyHoursChart');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const dpr = window.devicePixelRatio || 1;
+      const rect = canvas.getBoundingClientRect();
+
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      ctx.scale(dpr, dpr);
+
+      const width = rect.width;
+      const height = rect.height;
+
+      // Calculate last 7 days
+      const days = [];
+      const dayLabels = [];
+      let totalWeekMinutes = 0;
+
+      for (let i = 6; i >= 0; i--) {
+        const d = new Date();
+        d.setDate(d.getDate() - i);
+        const dateKey = d.toISOString().split('T')[0];
+        const dayName = d.toLocaleDateString('en-US', { weekday: 'short' });
+        
+        const logs = appData.studyLogs.filter(l => l.date === dateKey);
+        const mins = logs.reduce((acc, l) => acc + (l.minutes || 0), 0);
+        totalWeekMinutes += mins;
+
+        days.push(mins / 60); // hours
+        dayLabels.push(dayName);
+      }
+
+      document.getElementById('weeklyTotalHoursBadge').textContent = `${(totalWeekMinutes / 60).toFixed(1)}h Total`;
+
+      ctx.clearRect(0, 0, width, height);
+
+      const maxHour = Math.max(6, Math.max(...days) * 1.2);
+      const bottomPadding = 30;
+      const topPadding = 20;
+      const chartHeight = height - bottomPadding - topPadding;
+      const barWidth = Math.min(36, (width / 7) * 0.55);
+      const colStep = width / 7;
+
+      // Draw Grid lines
+      ctx.strokeStyle = '#1e293b';
+      ctx.lineWidth = 1;
+      for (let i = 0; i <= 4; i++) {
+        const y = topPadding + (chartHeight * (i / 4));
+        ctx.beginPath();
+        ctx.moveTo(30, y);
+        ctx.lineTo(width - 10, y);
+        ctx.stroke();
+      }
+
+      // Draw Bars
+      days.forEach((h, idx) => {
+        const barH = (h / maxHour) * chartHeight;
+        const x = (idx * colStep) + (colStep / 2) - (barWidth / 2);
+        const y = height - bottomPadding - barH;
+
+        // Gradient bar
+        const grad = ctx.createLinearGradient(0, y, 0, height - bottomPadding);
+        grad.addColorStop(0, '#10b981');
+        grad.addColorStop(1, '#059669');
+
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.roundRect ? ctx.roundRect(x, y, barWidth, Math.max(4, barH), 6) : ctx.rect(x, y, barWidth, Math.max(4, barH));
+        ctx.fill();
+
+        // Label value on top of bar
+        if (h > 0) {
+          ctx.fillStyle = '#6ee7b7';
+          ctx.font = 'bold 10px "JetBrains Mono", monospace';
+          ctx.textAlign = 'center';
+          ctx.fillText(`${h.toFixed(1)}h`, x + barWidth / 2, y - 5);
+        }
+
+        // Day label
+        ctx.fillStyle = '#94a3b8';
+        ctx.font = '10px "Plus Jakarta Sans", sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(dayLabels[idx], x + barWidth / 2, height - 10);
+      });
+    }
+
+    function drawStreamShareChart() {
+      const canvas = document.getElementById('streamShareChart');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const dpr = window.devicePixelRatio || 1;
+      const rect = canvas.getBoundingClientRect();
+
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      ctx.scale(dpr, dpr);
+
+      const width = rect.width;
+      const height = rect.height;
+      ctx.clearRect(0, 0, width, height);
+
+      let ndaMins = 0;
+      let btechMins = 0;
+
+      appData.studyLogs.forEach(l => {
+        if (l.stream === 'nda') ndaMins += (l.minutes || 0);
+        else if (l.stream === 'btech') btechMins += (l.minutes || 0);
+        else ndaMins += (l.minutes || 0) / 2; // general split
+      });
+
+      const total = ndaMins + btechMins;
+      const centerX = width / 2;
+      const centerY = height / 2;
+      const radius = Math.min(centerX, centerY) - 25;
+
+      if (total === 0) {
+        ctx.strokeStyle = '#334155';
+        ctx.lineWidth = 18;
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+        ctx.stroke();
+
+        ctx.fillStyle = '#94a3b8';
+        ctx.font = '11px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('No logged sessions yet', centerX, centerY + 4);
+        return;
+      }
+
+      const ndaPct = ndaMins / total;
+      const ndaAngle = ndaPct * 2 * Math.PI;
+
+      // Draw NDA Arc (Emerald)
+      ctx.strokeStyle = '#10b981';
+      ctx.lineWidth = 20;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, radius, -Math.PI / 2, (-Math.PI / 2) + ndaAngle);
+      ctx.stroke();
+
+      // Draw B.Tech Arc (Indigo)
+      ctx.strokeStyle = '#6366f1';
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, radius, (-Math.PI / 2) + ndaAngle, 1.5 * Math.PI);
+      ctx.stroke();
+
+      // Center text
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 16px "JetBrains Mono", monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText(`${Math.round(ndaPct * 100)}% NDA`, centerX, centerY - 2);
+
+      ctx.fillStyle = '#818cf8';
+      ctx.font = 'bold 12px "JetBrains Mono", monospace';
+      ctx.fillText(`${Math.round((1 - ndaPct) * 100)}% B.Tech`, centerX, centerY + 16);
+    }
+
+    function drawMockTrendChart() {
+      const canvas = document.getElementById('mockTrendChart');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const dpr = window.devicePixelRatio || 1;
+      const rect = canvas.getBoundingClientRect();
+
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      ctx.scale(dpr, dpr);
+
+      const width = rect.width;
+      const height = rect.height;
+      ctx.clearRect(0, 0, width, height);
+
+      const mocks = appData.mockTests || [];
+      if (mocks.length < 2) {
+        ctx.fillStyle = '#64748b';
+        ctx.font = '12px "Plus Jakarta Sans", sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('Log at least 2 mock tests to visualize your score trajectory curve.', width / 2, height / 2);
+        return;
+      }
+
+      const paddingLeft = 40;
+      const paddingRight = 30;
+      const paddingTop = 30;
+      const paddingBottom = 40;
+      const chartWidth = width - paddingLeft - paddingRight;
+      const chartHeight = height - paddingTop - paddingBottom;
+
+      // Draw reference line for 60%
+      const targetY = height - paddingBottom - (0.6 * chartHeight);
+      ctx.strokeStyle = '#334155';
+      ctx.setLineDash([4, 4]);
+      ctx.beginPath();
+      ctx.moveTo(paddingLeft, targetY);
+      ctx.lineTo(width - paddingRight, targetY);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      ctx.fillStyle = '#64748b';
+      ctx.font = '10px monospace';
+      ctx.textAlign = 'right';
+      ctx.fillText('60% target', paddingLeft - 5, targetY + 3);
+
+      const points = mocks.map((m, idx) => {
+        const pct = Math.min(100, Math.max(0, (m.score / (m.maxScore || 100)) * 100));
+        const x = paddingLeft + (idx / (mocks.length - 1)) * chartWidth;
+        const y = height - paddingBottom - (pct / 100) * chartHeight;
+        return { x, y, pct, title: m.title };
+      });
+
+      // Draw stroke curve
+      ctx.strokeStyle = '#10b981';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      points.forEach((pt, i) => {
+        if (i === 0) ctx.moveTo(pt.x, pt.y);
+        else ctx.lineTo(pt.x, pt.y);
+      });
+      ctx.stroke();
+
+      // Draw points
+      points.forEach(pt => {
+        ctx.fillStyle = '#10b981';
+        ctx.beginPath();
+        ctx.arc(pt.x, pt.y, 5, 0, 2 * Math.PI);
+        ctx.fill();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 10px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText(`${Math.round(pt.pct)}%`, pt.x, pt.y - 10);
+      });
+    }
+
+    function renderSettingsView() {
+      document.getElementById('cfgNdaDate').value = appData.profile.ndaExamDate || '2027-04-18';
+      document.getElementById('cfgNdaScore').value = appData.profile.ndaTargetScore || 480;
+      document.getElementById('cfgBtechDate').value = appData.profile.btechExamDate || '2026-12-15';
+      document.getElementById('cfgBtechSgpa').value = appData.profile.btechTargetSgpa || 8.50;
+      document.getElementById('cfgDailyHours').value = appData.profile.dailyHourGoal || 6.0;
+    }
+
+    function saveProfileSettings(e) {
+      e.preventDefault();
+      appData.profile.ndaExamDate = document.getElementById('cfgNdaDate').value;
+      appData.profile.ndaTargetScore = parseInt(document.getElementById('cfgNdaScore').value) || 480;
+      appData.profile.btechExamDate = document.getElementById('cfgBtechDate').value;
+      appData.profile.btechTargetSgpa = parseFloat(document.getElementById('cfgBtechSgpa').value) || 8.50;
+      appData.profile.dailyHourGoal = parseFloat(document.getElementById('cfgDailyHours').value) || 6.0;
+
+      saveData();
+      showToast('Preparation targets saved successfully! 🎯', 'success');
+      renderAll();
+    }
+
+    function openTargetSettingsModal(stream) {
+      switchView('settings');
+      setTimeout(() => {
+        const input = stream === 'nda' ? document.getElementById('cfgNdaScore') : document.getElementById('cfgBtechSgpa');
+        if (input) input.focus();
+      }, 100);
+    }
+
+    function exportBackupData() {
+      try {
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appData, null, 2));
+        const downloadAnchor = document.createElement('a');
+        const filename = `prephq_backup_nda2027_btech_${new Date().toISOString().split('T')[0]}.json`;
+        downloadAnchor.setAttribute("href", dataStr);
+        downloadAnchor.setAttribute("download", filename);
+        document.body.appendChild(downloadAnchor);
+        downloadAnchor.click();
+        downloadAnchor.remove();
+        showToast('JSON Backup downloaded!', 'success');
+      } catch (err) {
+        showToast('Failed to export backup', 'error');
+      }
+    }
+
+    function importBackupData(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        try {
+          const parsed = JSON.parse(evt.target.result);
+          if (parsed && parsed.profile && parsed.subjects) {
+            appData = parsed;
+            saveData();
+            showToast('Backup restored successfully!', 'success');
+            renderAll();
+          } else {
+            showToast('Invalid backup file structure', 'error');
+          }
+        } catch (err) {
+          showToast('Failed to parse JSON file', 'error');
+        }
+      };
+      reader.readAsText(file);
+      e.target.value = '';
+    }
+
+    function confirmResetToDefault() {
+      showConfirmModal({
+        title: 'Reset to Recommended Sample Data?',
+        message: 'This will replace your current data with the initial NDA 2027 & B.Tech starter preparation blueprint.',
+        onConfirm: () => {
+          appData = JSON.parse(JSON.stringify(DEFAULT_DATA));
+          saveData();
+          showToast('Reset to default syllabus and plans', 'success');
+          renderAll();
+        }
+      });
+    }
+
+    function confirmClearAllData() {
+      showConfirmModal({
+        title: 'Wipe All Data?',
+        message: 'Are you sure? This will remove all subjects, chapters, tasks, mock logs, and mistakes completely.',
+        onConfirm: () => {
+          appData = {
+            profile: {
+              ndaExamDate: '2027-04-18',
+              ndaTargetScore: 480,
+              btechExamDate: '2026-12-15',
+              btechTargetSgpa: 8.50,
+              dailyHourGoal: 6.0,
+              streak: 0,
+              lastActiveDate: new Date().toISOString().split('T')[0]
+            },
+            subjects: [],
+            tasks: [],
+            studyLogs: [],
+            mockTests: [],
+            pyqs: [],
+            mistakes: []
+          };
+          saveData();
+          showToast('All data cleared. Ready for custom input.', 'info');
+          renderAll();
+        }
+      });
+    }
+
+    /* Helper: Escape HTML string */
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    function renderAll() {
+      updateHeaderStats();
+
+      if (currentActiveView === 'dashboard') renderDashboard();
+      else if (currentActiveView === 'tasks') renderTasksList();
+      else if (currentActiveView === 'nda') renderNdaHub();
+      else if (currentActiveView === 'btech') renderBtechHub();
+      else if (currentActiveView === 'subjects') renderSubjectsView();
+      else if (currentActiveView === 'timer') renderTimerView();
+      else if (currentActiveView === 'mocks') renderMocksView();
+      else if (currentActiveView === 'pyqs') renderPyqsView();
+      else if (currentActiveView === 'mistakes') renderMistakesView();
+      else if (currentActiveView === 'calendar') renderCalendarView();
+      else if (currentActiveView === 'analytics') renderAnalyticsView();
+      else if (currentActiveView === 'settings') renderSettingsView();
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      loadData();
+      renderAll();
+
+      // Mobile Menu button trigger
+      const mobToggle = document.getElementById('mobileNavToggleBtn');
+      if (mobToggle) {
+        mobToggle.addEventListener('click', toggleMobileFullMenu);
+      }
+
+      // Responsive redraw on canvas resize
+      window.addEventListener('resize', () => {
+        if (currentActiveView === 'analytics') {
+          renderAnalyticsView();
+        }
+      });
+    });
+  </script>
+</body>
+</html>
